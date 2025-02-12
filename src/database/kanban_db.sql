@@ -1,5 +1,6 @@
 -- Criar o banco de dados
-CREATE DATABASE IF NOT EXISTS kanban_db;
+DROP DATABASE IF EXISTS kanban_db;
+CREATE DATABASE kanban_db;
 USE kanban_db;
 
 -- Criar a tabela de usuários
