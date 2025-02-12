@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     name VARCHAR(255) NOT NULL,
     column_name VARCHAR(50) NOT NULL,
     created_by INT NOT NULL,
+    priority ENUM('ALTA', 'MEDIA', 'BAIXA') DEFAULT 'MEDIA',
+    due_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id)
@@ -42,7 +44,7 @@ INSERT INTO users (name, email, password) VALUES
     ('Admin', 'admin@example.com', 'admin123');
 
 -- Inserir algumas tarefas de exemplo
-INSERT INTO tasks (name, column_name, created_by) VALUES
-    ('Implementar login', 'A Fazer', 1),
-    ('Desenvolver interface', 'Fazendo', 1),
-    ('Testar aplicação', 'A Fazer', 1);
+INSERT INTO tasks (name, column_name, created_by, priority, due_date) VALUES
+    ('Implementar login', 'A Fazer', 1, 'ALTA', DATE_ADD(CURRENT_DATE, INTERVAL 3 DAY)),
+    ('Desenvolver interface', 'Fazendo', 1, 'MEDIA', DATE_ADD(CURRENT_DATE, INTERVAL 5 DAY)),
+    ('Testar aplicação', 'A Fazer', 1, 'BAIXA', DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY));

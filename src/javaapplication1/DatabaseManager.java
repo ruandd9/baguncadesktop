@@ -6,6 +6,7 @@ import javax.swing.JOptionPane;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 public class DatabaseManager {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/kanban_db?useSSL=false&allowPublicKeyRetrieval=true";
@@ -94,14 +95,16 @@ public class DatabaseManager {
     }
     
     // Adicionar uma nova tarefa
-    public static int addTask(String taskName, String column, int userId) {
-        String sql = "INSERT INTO tasks (name, column_name, created_by) VALUES (?, ?, ?)";
+    public static int addTask(String taskName, String column, int userId, Task.Priority priority, Date dueDate) {
+        String sql = "INSERT INTO tasks (name, column_name, created_by, priority, due_date) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pstmt.setString(1, taskName);
             pstmt.setString(2, column);
             pstmt.setInt(3, userId);
+            pstmt.setString(4, priority.name());
+            pstmt.setDate(5, dueDate != null ? new java.sql.Date(dueDate.getTime()) : null);
             
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
@@ -125,13 +128,17 @@ public class DatabaseManager {
     }
     
     // Atualizar uma tarefa
-    public static boolean updateTask(int taskId, String newName) {
-        String sql = "UPDATE tasks SET name = ? WHERE id = ?";
+    public static boolean updateTask(int taskId, String taskName, String column, Task.Priority priority, Date dueDate) {
+        String sql = "UPDATE tasks SET name = ?, column_name = ?, priority = ?, due_date = ? WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, newName);
-            pstmt.setInt(2, taskId);
+            pstmt.setString(1, taskName);
+            pstmt.setString(2, column);
+            pstmt.setString(3, priority.name());
+            pstmt.setDate(4, dueDate != null ? new java.sql.Date(dueDate.getTime()) : null);
+            pstmt.setInt(5, taskId);
+            
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null,
@@ -177,20 +184,26 @@ public class DatabaseManager {
         }
     }
     
-    // Carregar todas as tarefas
+    // Carregar tarefas
     public static ArrayList<Task> loadTasks() {
         ArrayList<Task> tasks = new ArrayList<>();
-        String sql = "SELECT id, name, column_name FROM tasks ORDER BY created_at";
+        String sql = "SELECT id, name, column_name, created_by, priority, due_date FROM tasks ORDER BY due_date ASC";
         
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
+                Task.Priority priority = Task.Priority.valueOf(rs.getString("priority"));
+                Date dueDate = rs.getDate("due_date");
+                
                 Task task = new Task(
                     rs.getInt("id"),
                     rs.getString("name"),
-                    rs.getString("column_name")
+                    rs.getString("column_name"),
+                    rs.getInt("created_by"),
+                    priority,
+                    dueDate
                 );
                 tasks.add(task);
             }
