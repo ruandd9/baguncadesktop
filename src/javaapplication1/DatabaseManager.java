@@ -229,6 +229,43 @@ public class DatabaseManager {
         return null;
     }
     
+    // Registrar novo usuário
+    public static boolean registerUser(String name, String email, String password) {
+        // Verificar se o email já existe
+        String checkSql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            
+            checkStmt.setString(1, email);
+            ResultSet rs = checkStmt.executeQuery();
+            
+            if (rs.next() && rs.getInt(1) > 0) {
+                JOptionPane.showMessageDialog(null,
+                    "Este email já está cadastrado.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            
+            // Inserir novo usuário
+            String insertSql = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                insertStmt.setString(1, name);
+                insertStmt.setString(2, email);
+                insertStmt.setString(3, password);
+                
+                insertStmt.executeUpdate();
+                return true;
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                "Erro ao registrar usuário: " + e.getMessage(),
+                "Erro de Banco de Dados",
+                JOptionPane.ERROR_MESSAGE);
+        }
+        return false;
+    }
+    
     // Registrar atividade
     public static void logActivity(int userId, int taskId, String actionType, String description, String oldValue, String newValue) {
         String sql = "INSERT INTO activity_log (user_id, task_id, action_type, description, old_value, new_value) VALUES (?, ?, ?, ?, ?, ?)";

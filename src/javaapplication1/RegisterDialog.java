@@ -4,14 +4,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class LoginDialog extends JDialog {
+public class RegisterDialog extends JDialog {
+    private JTextField nameField;
     private JTextField emailField;
     private JPasswordField passwordField;
-    private boolean loginSuccessful = false;
-    private User loggedUser = null;
+    private JPasswordField confirmPasswordField;
+    private boolean registrationSuccessful = false;
     
-    public LoginDialog(Frame owner) {
-        super(owner, "Login", true);
+    public RegisterDialog(Frame owner) {
+        super(owner, "Criar Conta", true);
         setupUI();
     }
     
@@ -30,24 +31,33 @@ public class LoginDialog extends JDialog {
         mainPanel.setBackground(backgroundColor);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        // Labels
+        // Labels e campos
+        JLabel nameLabel = new JLabel("Nome:");
+        nameLabel.setForeground(textColor);
+        nameField = new JTextField(20);
+        styleField(nameField, fieldColor, textColor);
+        
         JLabel emailLabel = new JLabel("Email:");
         emailLabel.setForeground(textColor);
-        JLabel passwordLabel = new JLabel("Senha:");
-        passwordLabel.setForeground(textColor);
-        
-        // Campos
         emailField = new JTextField(20);
         styleField(emailField, fieldColor, textColor);
         
+        JLabel passwordLabel = new JLabel("Senha:");
+        passwordLabel.setForeground(textColor);
         passwordField = new JPasswordField(20);
         styleField(passwordField, fieldColor, textColor);
         
+        JLabel confirmLabel = new JLabel("Confirmar Senha:");
+        confirmLabel.setForeground(textColor);
+        confirmPasswordField = new JPasswordField(20);
+        styleField(confirmPasswordField, fieldColor, textColor);
+        
         // Botões
-        JButton loginButton = new JButton("Entrar");
-        styleButton(loginButton, buttonColor, textColor);
-        loginButton.addActionListener(e -> login());
+        JButton registerButton = new JButton("Criar Conta");
+        styleButton(registerButton, buttonColor, textColor);
+        registerButton.addActionListener(e -> register());
         
         JButton cancelButton = new JButton("Cancelar");
         styleButton(cancelButton, fieldColor, textColor);
@@ -55,35 +65,33 @@ public class LoginDialog extends JDialog {
         
         // Adicionar componentes
         gbc.gridx = 0; gbc.gridy = 0;
+        mainPanel.add(nameLabel, gbc);
+        
+        gbc.gridx = 1;
+        mainPanel.add(nameField, gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 1;
         mainPanel.add(emailLabel, gbc);
         
         gbc.gridx = 1;
         mainPanel.add(emailField, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0; gbc.gridy = 2;
         mainPanel.add(passwordLabel, gbc);
         
         gbc.gridx = 1;
         mainPanel.add(passwordField, gbc);
         
+        gbc.gridx = 0; gbc.gridy = 3;
+        mainPanel.add(confirmLabel, gbc);
+        
+        gbc.gridx = 1;
+        mainPanel.add(confirmPasswordField, gbc);
+        
         // Painel de botões
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(backgroundColor);
-        
-        JButton registerButton = new JButton("Criar Conta");
-        styleButton(registerButton, fieldColor, textColor);
-        registerButton.addActionListener(e -> {
-            RegisterDialog registerDialog = new RegisterDialog(getOwner());
-            registerDialog.setVisible(true);
-            if (registerDialog.isRegistrationSuccessful()) {
-                // Preencher o email se o registro foi bem-sucedido
-                emailField.setText(emailField.getText());
-                passwordField.requestFocus();
-            }
-        });
-        
         buttonPanel.add(registerButton);
-        buttonPanel.add(loginButton);
         buttonPanel.add(cancelButton);
         
         // Adicionar painéis ao diálogo
@@ -100,8 +108,8 @@ public class LoginDialog extends JDialog {
         setLocationRelativeTo(getOwner());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         
-        // Enter para login
-        getRootPane().setDefaultButton(loginButton);
+        // Enter para registrar
+        getRootPane().setDefaultButton(registerButton);
     }
     
     private void styleField(JTextField field, Color bgColor, Color fgColor) {
@@ -132,11 +140,14 @@ public class LoginDialog extends JDialog {
         });
     }
     
-    private void login() {
-        String email = emailField.getText();
+    private void register() {
+        String name = nameField.getText().trim();
+        String email = emailField.getText().trim();
         String password = new String(passwordField.getPassword());
+        String confirmPassword = new String(confirmPasswordField.getPassword());
         
-        if (email.isEmpty() || password.isEmpty()) {
+        // Validações
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                 "Por favor, preencha todos os campos.",
                 "Erro",
@@ -144,23 +155,42 @@ public class LoginDialog extends JDialog {
             return;
         }
         
-        loggedUser = DatabaseManager.authenticateUser(email, password);
-        if (loggedUser != null) {
-            loginSuccessful = true;
-            dispose();
-        } else {
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
             JOptionPane.showMessageDialog(this,
-                "Email ou senha incorretos.",
-                "Erro de Login",
+                "Por favor, insira um email válido.",
+                "Erro",
                 JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (!password.equals(confirmPassword)) {
+            JOptionPane.showMessageDialog(this,
+                "As senhas não coincidem.",
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (password.length() < 6) {
+            JOptionPane.showMessageDialog(this,
+                "A senha deve ter pelo menos 6 caracteres.",
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        // Tentar registrar
+        if (DatabaseManager.registerUser(name, email, password)) {
+            registrationSuccessful = true;
+            JOptionPane.showMessageDialog(this,
+                "Conta criada com sucesso!\nVocê já pode fazer login.",
+                "Sucesso",
+                JOptionPane.INFORMATION_MESSAGE);
+            dispose();
         }
     }
     
-    public boolean isLoginSuccessful() {
-        return loginSuccessful;
-    }
-    
-    public User getLoggedUser() {
-        return loggedUser;
+    public boolean isRegistrationSuccessful() {
+        return registrationSuccessful;
     }
 }
