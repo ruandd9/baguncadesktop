@@ -18,8 +18,13 @@ public class JavaApplication1 {
         SwingUtilities.invokeLater(() -> {
             // Mostrar tela de login
             JFrame frame = new JFrame();
+            frame.setUndecorated(true);
+            frame.setVisible(true);
+            
             LoginDialog loginDialog = new LoginDialog(frame);
             loginDialog.setVisible(true);
+            
+            frame.dispose();
             
             // Se o login for bem-sucedido, mostrar o quadro Kanban
             if (loginDialog.isLoginSuccessful()) {

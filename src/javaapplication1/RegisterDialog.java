@@ -11,8 +11,8 @@ public class RegisterDialog extends JDialog {
     private JPasswordField confirmPasswordField;
     private boolean registrationSuccessful = false;
     
-    public RegisterDialog(Frame owner) {
-        super(owner, "Criar Conta", true);
+    public RegisterDialog(Window owner) {
+        super(owner, "Criar Conta", ModalityType.APPLICATION_MODAL);
         setupUI();
     }
     

@@ -73,7 +73,7 @@ public class LoginDialog extends JDialog {
         JButton registerButton = new JButton("Criar Conta");
         styleButton(registerButton, fieldColor, textColor);
         registerButton.addActionListener(e -> {
-            RegisterDialog registerDialog = new RegisterDialog(getOwner());
+            RegisterDialog registerDialog = new RegisterDialog(SwingUtilities.getWindowAncestor(this));
             registerDialog.setVisible(true);
             if (registerDialog.isRegistrationSuccessful()) {
                 // Preencher o email se o registro foi bem-sucedido
