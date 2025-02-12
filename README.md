@@ -7,7 +7,7 @@ Um aplicativo de quadro Kanban desenvolvido em Java Swing com tema escuro inspir
 - Interface moderna com tema escuro
 - Sistema de login de usuários
 - Registro de atividades em tempo real
-- Drag and drop de tarefas entre colunas
+- Click and drop de tarefas entre colunas
 - Armazenamento em banco de dados MySQL
 - Menu de contexto para gerenciar tarefas
 
@@ -36,7 +36,7 @@ git clone [URL_DO_SEU_REPOSITORIO]
 
 - Java Swing
 - MySQL
-- JDBC
+- JDBC - https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar - Calendar - https://repo1.maven.org/maven2/com/toedter/jcalendar/1.4/jcalendar-1.4.jar
 
 ## Estrutura do Projeto
 
