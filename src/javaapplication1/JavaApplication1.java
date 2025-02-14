@@ -237,16 +237,6 @@ class KanbanBoard extends JFrame {
             return;
         }
         
-        // Registrar atividade
-        DatabaseManager.logActivity(
-            currentUser.getId(),
-            taskId,
-            "CREATE",
-            "criou uma nova tarefa: " + taskName,
-            null,
-            column
-        );
-        
         // Criar um painel para a tarefa com tamanho fixo
         JPanel taskPanel = createTaskPanel(taskId, taskName, priority, dueDate);
         
