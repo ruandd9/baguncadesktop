@@ -251,20 +251,28 @@ class KanbanBoard extends JFrame {
         JPanel taskPanel = createTaskPanel(taskId, taskName, priority, dueDate);
         
         // Adicionar à coluna apropriada
+        JPanel targetPanel = null;
+        ArrayList<JPanel> targetList = null;
+        
         if (column.equals("A Fazer")) {
-            todoTasks.add(taskPanel);
-            todoPanel.add(taskPanel);
+            targetPanel = (JPanel)((JScrollPane)todoPanel.getComponent(0)).getViewport().getView();
+            targetList = todoTasks;
         } else if (column.equals("Fazendo")) {
-            doingTasks.add(taskPanel);
-            doingPanel.add(taskPanel);
+            targetPanel = (JPanel)((JScrollPane)doingPanel.getComponent(0)).getViewport().getView();
+            targetList = doingTasks;
         } else {
-            doneTasks.add(taskPanel);
-            donePanel.add(taskPanel);
+            targetPanel = (JPanel)((JScrollPane)donePanel.getComponent(0)).getViewport().getView();
+            targetList = doneTasks;
         }
         
-        // Atualizar a interface
-        revalidate();
-        repaint();
+        if (targetPanel != null && targetList != null) {
+            targetList.add(taskPanel);
+            targetPanel.add(taskPanel);
+            
+            // Atualizar a interface
+            targetPanel.revalidate();
+            targetPanel.repaint();
+        }
     }
     
     private JPanel createTaskPanel(int taskId, String taskName, Task.Priority priority, Date dueDate) {
@@ -274,12 +282,15 @@ class KanbanBoard extends JFrame {
         taskPanel.setBackground(new Color(47, 49, 54));
         taskPanel.setBorder(BorderFactory.createLineBorder(new Color(32, 34, 37)));
         taskPanel.putClientProperty("taskId", taskId);
+        taskPanel.putClientProperty("taskName", taskName); // Armazenar o nome como propriedade
         
         // Painel superior com nome e prioridade
         JPanel headerPanel = new JPanel(new BorderLayout(5, 0));
         headerPanel.setBackground(new Color(47, 49, 54));
         
+        // Nome da tarefa
         JLabel nameLabel = new JLabel(taskName);
+        nameLabel.setName("taskNameLabel"); // Identificador único
         nameLabel.setForeground(Color.WHITE);
         headerPanel.add(nameLabel, BorderLayout.CENTER);
         
@@ -291,9 +302,9 @@ class KanbanBoard extends JFrame {
         
         taskPanel.add(headerPanel, BorderLayout.NORTH);
         
-        // Data de vencimento
+        // Data de vencimento e dias restantes
         if (dueDate != null) {
-            JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            JPanel datePanel = new JPanel(new GridLayout(2, 1, 0, 2));
             datePanel.setBackground(new Color(47, 49, 54));
             
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -301,25 +312,58 @@ class KanbanBoard extends JFrame {
             dateLabel.setForeground(Color.LIGHT_GRAY);
             dateLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
             
-            // Ícone de alerta se estiver atrasado ou próximo
-            if (new Date().after(dueDate)) {
-                dateLabel.setForeground(Color.decode("#FF4444"));
-                dateLabel.setText("ATRASADO: " + dateLabel.getText());
+            // Calcular dias restantes
+            long diff = dueDate.getTime() - new Date().getTime();
+            long days = diff / (24 * 60 * 60 * 1000);
+            
+            JLabel daysLabel = new JLabel();
+            daysLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            
+            if (days < 0) {
+                daysLabel.setText("ATRASADO: " + Math.abs(days) + " dias");
+                daysLabel.setForeground(Color.decode("#FF4444"));
+            } else if (days == 0) {
+                daysLabel.setText("ENTREGA: Hoje");
+                daysLabel.setForeground(Color.decode("#FFB74D"));
+            } else if (days == 1) {
+                daysLabel.setText("ENTREGA: Amanhã");
+                daysLabel.setForeground(Color.decode("#FFB74D"));
+            } else if (days <= 3) {
+                daysLabel.setText("ENTREGA: " + days + " dias");
+                daysLabel.setForeground(Color.decode("#FFB74D"));
             } else {
-                long diff = dueDate.getTime() - new Date().getTime();
-                long days = diff / (24 * 60 * 60 * 1000);
-                if (days <= 3) {
-                    dateLabel.setForeground(Color.decode("#FFB74D"));
-                }
+                daysLabel.setText("ENTREGA: " + days + " dias");
+                daysLabel.setForeground(Color.decode("#4CAF50"));
             }
             
             datePanel.add(dateLabel);
+            datePanel.add(daysLabel);
             taskPanel.add(datePanel, BorderLayout.CENTER);
         }
         
         // Menu de contexto
         JPopupMenu popupMenu = new JPopupMenu();
         popupMenu.setBackground(new Color(47, 49, 54));
+        
+        // Opções de mover
+        JMenu moveMenu = new JMenu("Mover para");
+        styleMenuItem(moveMenu);
+        
+        JMenuItem moveToTodo = new JMenuItem("A Fazer");
+        styleMenuItem(moveToTodo);
+        moveToTodo.addActionListener(e -> moveTask(taskPanel, "A Fazer"));
+        
+        JMenuItem moveToDoing = new JMenuItem("Fazendo");
+        styleMenuItem(moveToDoing);
+        moveToDoing.addActionListener(e -> moveTask(taskPanel, "Fazendo"));
+        
+        JMenuItem moveToDone = new JMenuItem("Feito");
+        styleMenuItem(moveToDone);
+        moveToDone.addActionListener(e -> moveTask(taskPanel, "Feito"));
+        
+        moveMenu.add(moveToTodo);
+        moveMenu.add(moveToDoing);
+        moveMenu.add(moveToDone);
         
         // Opções de prioridade
         JMenu priorityMenu = new JMenu("Prioridade");
@@ -363,31 +407,10 @@ class KanbanBoard extends JFrame {
         });
         
         // Adicionar itens ao menu
+        popupMenu.add(moveMenu);
+        popupMenu.addSeparator();
         popupMenu.add(priorityMenu);
         popupMenu.add(dateItem);
-        popupMenu.addSeparator();
-        
-        // Opções de mover
-        JMenu moveMenu = new JMenu("Mover para");
-        styleMenuItem(moveMenu);
-        
-        JMenuItem moveToTodo = new JMenuItem("A Fazer");
-        styleMenuItem(moveToTodo);
-        moveToTodo.addActionListener(e -> moveTask(taskPanel, "A Fazer"));
-        
-        JMenuItem moveToDoing = new JMenuItem("Fazendo");
-        styleMenuItem(moveToDoing);
-        moveToDoing.addActionListener(e -> moveTask(taskPanel, "Fazendo"));
-        
-        JMenuItem moveToDone = new JMenuItem("Feito");
-        styleMenuItem(moveToDone);
-        moveToDone.addActionListener(e -> moveTask(taskPanel, "Feito"));
-        
-        moveMenu.add(moveToTodo);
-        moveMenu.add(moveToDoing);
-        moveMenu.add(moveToDone);
-        
-        popupMenu.add(moveMenu);
         popupMenu.addSeparator();
         
         // Opção de excluir
@@ -402,15 +425,17 @@ class KanbanBoard extends JFrame {
         taskPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    popupMenu.show(e.getComponent(), e.getX(), e.getY());
-                }
+                showPopupMenu(e);
             }
             
             @Override
             public void mouseReleased(MouseEvent e) {
+                showPopupMenu(e);
+            }
+            
+            private void showPopupMenu(MouseEvent e) {
                 if (e.isPopupTrigger()) {
-                    popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                    popupMenu.show(taskPanel, e.getX(), e.getY());
                 }
             }
         });
@@ -419,10 +444,15 @@ class KanbanBoard extends JFrame {
     }
     
     private void refreshTasks() {
+        // Obter os painéis internos dos JScrollPane
+        JPanel todoTasksPanel = (JPanel)((JScrollPane)todoPanel.getComponent(0)).getViewport().getView();
+        JPanel doingTasksPanel = (JPanel)((JScrollPane)doingPanel.getComponent(0)).getViewport().getView();
+        JPanel doneTasksPanel = (JPanel)((JScrollPane)donePanel.getComponent(0)).getViewport().getView();
+        
         // Limpar todos os painéis
-        todoPanel.removeAll();
-        doingPanel.removeAll();
-        donePanel.removeAll();
+        todoTasksPanel.removeAll();
+        doingTasksPanel.removeAll();
+        doneTasksPanel.removeAll();
         
         todoTasks.clear();
         doingTasks.clear();
@@ -441,22 +471,29 @@ class KanbanBoard extends JFrame {
             switch (task.getColumn()) {
                 case "A Fazer":
                     todoTasks.add(taskPanel);
-                    todoPanel.add(taskPanel);
+                    todoTasksPanel.add(taskPanel);
                     break;
                 case "Fazendo":
                     doingTasks.add(taskPanel);
-                    doingPanel.add(taskPanel);
+                    doingTasksPanel.add(taskPanel);
                     break;
                 case "Feito":
                     doneTasks.add(taskPanel);
-                    donePanel.add(taskPanel);
+                    doneTasksPanel.add(taskPanel);
                     break;
             }
         }
         
         // Atualizar interface
-        revalidate();
-        repaint();
+        todoTasksPanel.revalidate();
+        todoTasksPanel.repaint();
+        doingTasksPanel.revalidate();
+        doingTasksPanel.repaint();
+        doneTasksPanel.revalidate();
+        doneTasksPanel.repaint();
+        
+        // Atualizar log de atividades
+        updateActivityLog();
     }
     
     private void updateActivityLog() {
@@ -481,17 +518,21 @@ class KanbanBoard extends JFrame {
     }
     
     private String getCurrentColumn(JPanel taskPanel) {
-        Container parent = taskPanel.getParent();
-        while (parent != null && !(parent instanceof JScrollPane)) {
-            parent = parent.getParent();
+        // Obter os painéis internos dos JScrollPane
+        JPanel todoTasksPanel = (JPanel)((JScrollPane)todoPanel.getComponent(0)).getViewport().getView();
+        JPanel doingTasksPanel = (JPanel)((JScrollPane)doingPanel.getComponent(0)).getViewport().getView();
+        JPanel doneTasksPanel = (JPanel)((JScrollPane)donePanel.getComponent(0)).getViewport().getView();
+        
+        // Verificar em qual painel a tarefa está
+        if (todoTasksPanel.isAncestorOf(taskPanel)) {
+            return "A Fazer";
+        } else if (doingTasksPanel.isAncestorOf(taskPanel)) {
+            return "Fazendo";
+        } else if (doneTasksPanel.isAncestorOf(taskPanel)) {
+            return "Feito";
         }
-        if (parent != null) {
-            parent = parent.getParent();
-            if (parent == todoPanel) return "A Fazer";
-            if (parent == doingPanel) return "Fazendo";
-            if (parent == donePanel) return "Feito";
-        }
-        return "";
+        
+        return "A Fazer"; // Coluna padrão se não encontrar
     }
     
     // Método auxiliar para estilizar itens do menu
@@ -513,61 +554,105 @@ class KanbanBoard extends JFrame {
     }
     
     private void moveTask(JPanel taskPanel, String targetColumn) {
-        int taskId = (int) taskPanel.getClientProperty("taskId");
-        String taskName = ((JLabel) ((JPanel) taskPanel.getComponent(0)).getComponent(1)).getText();
-        String sourceColumn = getCurrentColumn(taskPanel);
-        
-        if (DatabaseManager.moveTask(taskId, targetColumn)) {
-            // Registrar atividade
-            DatabaseManager.logActivity(
-                currentUser.getId(),
-                taskId,
-                "MOVE",
-                "moveu a tarefa '" + taskName + "' para " + targetColumn,
-                sourceColumn,
-                targetColumn
-            );
+        try {
+            int taskId = (int) taskPanel.getClientProperty("taskId");
+            String taskName = (String) taskPanel.getClientProperty("taskName");
             
-            // Atualizar interface
-            refreshTasks();
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "Erro ao mover tarefa no banco de dados.",
-                "Erro",
-                JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    private void deleteTask(JPanel taskPanel) {
-        int taskId = (int) taskPanel.getClientProperty("taskId");
-        String taskName = ((JLabel) ((JPanel) taskPanel.getComponent(0)).getComponent(1)).getText();
-        String column = getCurrentColumn(taskPanel);
-        
-        int option = JOptionPane.showConfirmDialog(this,
-            "Tem certeza que deseja excluir esta tarefa?",
-            "Confirmar exclusão",
-            JOptionPane.YES_NO_OPTION);
+            if (taskName == null || taskName.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "Erro ao obter nome da tarefa.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             
-        if (option == JOptionPane.YES_OPTION) {
-            if (DatabaseManager.deleteTask(taskId)) {
+            String sourceColumn = getCurrentColumn(taskPanel);
+            
+            // Não mover se já estiver na coluna de destino
+            if (sourceColumn.equals(targetColumn)) {
+                return;
+            }
+            
+            if (DatabaseManager.moveTask(taskId, targetColumn)) {
                 // Registrar atividade
                 DatabaseManager.logActivity(
                     currentUser.getId(),
                     taskId,
-                    "DELETE",
-                    "excluiu a tarefa '" + taskName + "'",
-                    column,
-                    null
+                    "MOVE",
+                    "moveu a tarefa '" + taskName + "' para " + targetColumn,
+                    sourceColumn,
+                    targetColumn
                 );
                 
                 // Atualizar interface
                 refreshTasks();
             } else {
                 JOptionPane.showMessageDialog(this,
-                    "Erro ao excluir tarefa do banco de dados.",
+                    "Erro ao mover tarefa no banco de dados.",
                     "Erro",
                     JOptionPane.ERROR_MESSAGE);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Erro ao mover tarefa: " + e.getMessage(),
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void deleteTask(JPanel taskPanel) {
+        try {
+            int taskId = (int) taskPanel.getClientProperty("taskId");
+            String taskName = (String) taskPanel.getClientProperty("taskName");
+            
+            if (taskName == null || taskName.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "Erro ao obter nome da tarefa.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            String column = getCurrentColumn(taskPanel);
+            
+            // Confirmar exclusão
+            int option = JOptionPane.showConfirmDialog(this,
+                "Tem certeza que deseja excluir a tarefa '" + taskName + "'?",
+                "Confirmar Exclusão",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+            
+            if (option != JOptionPane.YES_OPTION) {
+                return;
+            }
+            
+            // Registrar atividade antes de excluir
+            DatabaseManager.logActivity(
+                currentUser.getId(),
+                taskId,
+                "DELETE",
+                "excluiu a tarefa '" + taskName + "'",
+                column,
+                null
+            );
+            
+            // Excluir a tarefa
+            if (DatabaseManager.deleteTask(taskId)) {
+                // Atualizar interface
+                refreshTasks();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Erro ao excluir tarefa no banco de dados.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Erro ao excluir tarefa: " + e.getMessage(),
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 }

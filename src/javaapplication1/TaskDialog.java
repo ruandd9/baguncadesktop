@@ -58,7 +58,10 @@ public class TaskDialog extends JDialog {
         JLabel dateLabel = new JLabel("Data de Vencimento:");
         dateLabel.setForeground(textColor);
         dueDateChooser = new JDateChooser();
-        dueDateChooser.setDate(initialDueDate);
+        dueDateChooser.setDateFormatString("dd/MM/yyyy");
+        if (initialDueDate != null) {
+            dueDateChooser.setDate(initialDueDate);
+        }
         styleDateChooser(dueDateChooser, fieldColor, textColor);
         
         // Botões

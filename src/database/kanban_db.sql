@@ -25,18 +25,18 @@ CREATE TABLE IF NOT EXISTS tasks (
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
--- Criar a tabela de log de atividades
-CREATE TABLE IF NOT EXISTS activity_log (
+-- Criar a tabela de atividades
+CREATE TABLE IF NOT EXISTS activities (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    task_id INT NOT NULL,
-    action_type ENUM('CREATE', 'MOVE', 'EDIT', 'DELETE') NOT NULL,
+    task_id INT,
+    action VARCHAR(50) NOT NULL,
     description VARCHAR(255) NOT NULL,
-    old_value VARCHAR(255),
-    new_value VARCHAR(255),
+    source_column VARCHAR(50),
+    target_column VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL
 );
 
 -- Inserir um usuário de exemplo

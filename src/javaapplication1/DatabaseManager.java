@@ -7,17 +7,18 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.text.SimpleDateFormat;
 
 public class DatabaseManager {
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/kanban_db?useSSL=false&allowPublicKeyRetrieval=true";
+    private static final String DB_URL = "jdbc:mysql://localhost:3307/kanban_db?useSSL=false&allowPublicKeyRetrieval=true";
     private static final String USER = "root";
-    private static final String PASS = "";
+    private static final String PASS = "senac";
     
     // Testar conexão com o banco
     public static boolean testConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
+            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
                 return true;
             }
         } catch (ClassNotFoundException e) {
@@ -49,11 +50,15 @@ public class DatabaseManager {
         }
         
         try {
+            // Obter o caminho do projeto
+            String projectPath = System.getProperty("user.dir");
+            String sqlFilePath = projectPath + "/src/database/kanban_db.sql";
+            
             // Ler o arquivo SQL
             StringBuilder sqlScript = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(
-                        DatabaseManager.class.getResourceAsStream("/database/kanban_db.sql"),
+                        new java.io.FileInputStream(sqlFilePath),
                         StandardCharsets.UTF_8))) {
                 
                 String line;
@@ -62,14 +67,15 @@ public class DatabaseManager {
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null,
-                    "Erro ao ler arquivo SQL: " + e.getMessage(),
+                    "Erro ao ler arquivo SQL: " + e.getMessage() + "\n" +
+                    "Caminho tentado: " + sqlFilePath,
                     "Erro de Inicialização",
                     JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             // Executar o script SQL
-            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
+            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
                 // Dividir o script em comandos individuais
                 String[] commands = sqlScript.toString().split(";");
                 
@@ -80,6 +86,11 @@ public class DatabaseManager {
                         }
                     }
                 }
+                
+                JOptionPane.showMessageDialog(null,
+                    "Banco de dados inicializado com sucesso!",
+                    "Sucesso",
+                    JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null,
@@ -169,12 +180,34 @@ public class DatabaseManager {
     
     // Excluir uma tarefa
     public static boolean deleteTask(int taskId) {
-        String sql = "DELETE FROM tasks WHERE id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setInt(1, taskId);
-            return pstmt.executeUpdate() > 0;
+        try (Connection conn = getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                // Primeiro atualizar as atividades para remover a referência à tarefa
+                String updateActivities = "UPDATE activities SET task_id = NULL WHERE task_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(updateActivities)) {
+                    pstmt.setInt(1, taskId);
+                    pstmt.executeUpdate();
+                }
+                
+                // Depois excluir a tarefa
+                String deleteTasks = "DELETE FROM tasks WHERE id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(deleteTasks)) {
+                    pstmt.setInt(1, taskId);
+                    int result = pstmt.executeUpdate();
+                    
+                    if (result > 0) {
+                        conn.commit();
+                        return true;
+                    } else {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null,
                 "Erro ao excluir tarefa: " + e.getMessage(),
@@ -279,54 +312,52 @@ public class DatabaseManager {
         return false;
     }
     
-    // Registrar atividade
-    public static void logActivity(int userId, int taskId, String actionType, String description, String oldValue, String newValue) {
-        String sql = "INSERT INTO activity_log (user_id, task_id, action_type, description, old_value, new_value) VALUES (?, ?, ?, ?, ?, ?)";
+    // Registrar uma atividade
+    public static void logActivity(int userId, int taskId, String action, String description, String sourceColumn, String targetColumn) {
+        String sql = "INSERT INTO activities (user_id, task_id, action, description, source_column, target_column, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, userId);
             pstmt.setInt(2, taskId);
-            pstmt.setString(3, actionType);
+            pstmt.setString(3, action);
             pstmt.setString(4, description);
-            pstmt.setString(5, oldValue);
-            pstmt.setString(6, newValue);
+            pstmt.setString(5, sourceColumn);
+            pstmt.setString(6, targetColumn);
             
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null,
-                "Erro ao registrar atividade: " + e.getMessage(),
-                "Erro de Banco de Dados",
-                JOptionPane.ERROR_MESSAGE);
+            // Apenas log o erro, não mostrar para o usuário pois é uma operação secundária
+            e.printStackTrace();
         }
     }
     
-    // Carregar atividades recentes
+    // Obter atividades recentes
     public static ArrayList<String> getRecentActivities() {
         ArrayList<String> activities = new ArrayList<>();
-        String sql = "SELECT u.name, a.description, a.created_at " +
-                    "FROM activity_log a " +
+        String sql = "SELECT a.description, a.created_at, u.name as user_name " +
+                    "FROM activities a " +
                     "JOIN users u ON a.user_id = u.id " +
-                    "ORDER BY a.created_at DESC LIMIT 10";
+                    "ORDER BY a.created_at DESC LIMIT 50";
         
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            
             while (rs.next()) {
-                String activity = String.format("%s - %s (%s)",
-                    rs.getString("name"),
-                    rs.getString("description"),
-                    rs.getTimestamp("created_at").toString()
+                String activity = String.format("%s - %s %s",
+                    sdf.format(rs.getTimestamp("created_at")),
+                    rs.getString("user_name"),
+                    rs.getString("description")
                 );
                 activities.add(activity);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null,
-                "Erro ao carregar atividades: " + e.getMessage(),
-                "Erro de Banco de Dados",
-                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
+        
         return activities;
     }
 }
