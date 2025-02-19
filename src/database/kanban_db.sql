@@ -73,6 +73,26 @@ CREATE TABLE IF NOT EXISTS team_notifications (
     FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
 );
 
+-- Tabela para armazenar checklists
+CREATE TABLE IF NOT EXISTS checklists (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    task_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+);
+
+-- Tabela para armazenar itens de checklist
+CREATE TABLE IF NOT EXISTS checklist_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    checklist_id INT NOT NULL,
+    description TEXT NOT NULL,
+    is_completed BOOLEAN DEFAULT 0,
+    position INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (checklist_id) REFERENCES checklists(id) ON DELETE CASCADE
+);
+
 -- Inserir um usuário de exemplo
 INSERT INTO users (name, email, password) VALUES
     ('Admin', 'admin@example.com', 'admin123');

@@ -160,6 +160,20 @@ public class DatabaseManager {
         }
     }
     
+    // Atualizar prioridade de uma tarefa
+    public static boolean updateTaskPriority(int taskId, Task.Priority priority) throws SQLException {
+        String sql = "UPDATE tasks SET priority = ? WHERE id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, priority.toString());
+            pstmt.setInt(2, taskId);
+            
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+    
     // Mover uma tarefa para outra coluna
     public static boolean moveTask(int taskId, String newColumn) {
         String sql = "UPDATE tasks SET column_name = ? WHERE id = ?";
@@ -626,6 +640,137 @@ public class DatabaseManager {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    // Métodos para gerenciamento de checklists
+    public static ArrayList<ChecklistItem> getChecklistItems(int taskId) throws SQLException {
+        ArrayList<ChecklistItem> items = new ArrayList<>();
+        String sql = "SELECT ci.* FROM checklist_items ci " +
+                    "INNER JOIN checklists c ON ci.checklist_id = c.id " +
+                    "WHERE c.task_id = ? " +
+                    "ORDER BY ci.position";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, taskId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                items.add(new ChecklistItem(
+                    rs.getInt("id"),
+                    rs.getInt("checklist_id"),
+                    rs.getString("description"),
+                    rs.getBoolean("is_completed"),
+                    rs.getInt("position")
+                ));
+            }
+        }
+        return items;
+    }
+    
+    public static ChecklistItem addChecklistItem(int taskId, String description, int position) throws SQLException {
+        // Primeiro, verifica se já existe uma checklist para a tarefa
+        int checklistId = getOrCreateChecklist(taskId);
+        
+        String sql = "INSERT INTO checklist_items (checklist_id, description, position) VALUES (?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, checklistId);
+            pstmt.setString(2, description);
+            pstmt.setInt(3, position);
+            pstmt.executeUpdate();
+            
+            ResultSet rs = pstmt.getGeneratedKeys();
+            if (rs.next()) {
+                return new ChecklistItem(
+                    rs.getInt(1),
+                    checklistId,
+                    description,
+                    false,
+                    position
+                );
+            }
+        }
+        throw new SQLException("Falha ao criar item da checklist");
+    }
+    
+    private static int getOrCreateChecklist(int taskId) throws SQLException {
+        // Verifica se já existe uma checklist
+        String selectSql = "SELECT id FROM checklists WHERE task_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectSql)) {
+            pstmt.setInt(1, taskId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
+        
+        // Se não existe, cria uma nova
+        String insertSql = "INSERT INTO checklists (task_id, name) VALUES (?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, taskId);
+            pstmt.setString(2, "Checklist Principal");
+            pstmt.executeUpdate();
+            
+            ResultSet rs = pstmt.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        throw new SQLException("Falha ao criar checklist");
+    }
+    
+    public static void updateChecklistItem(int itemId, String description) throws SQLException {
+        String sql = "UPDATE checklist_items SET description = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, description);
+            pstmt.setInt(2, itemId);
+            pstmt.executeUpdate();
+        }
+    }
+    
+    public static void deleteChecklistItem(int itemId) throws SQLException {
+        String sql = "DELETE FROM checklist_items WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, itemId);
+            pstmt.executeUpdate();
+        }
+    }
+    
+    public static void toggleChecklistItem(int itemId) throws SQLException {
+        String sql = "UPDATE checklist_items SET is_completed = NOT is_completed WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, itemId);
+            pstmt.executeUpdate();
+        }
+    }
+    
+    public static double getChecklistProgress(int taskId) throws SQLException {
+        String sql = "SELECT " +
+                    "COUNT(*) as total, " +
+                    "SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as completed " +
+                    "FROM checklist_items ci " +
+                    "INNER JOIN checklists c ON ci.checklist_id = c.id " +
+                    "WHERE c.task_id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, taskId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                int total = rs.getInt("total");
+                int completed = rs.getInt("completed");
+                return total > 0 ? (completed * 100.0) / total : 0;
+            }
         }
         return 0;
     }

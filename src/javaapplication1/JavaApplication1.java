@@ -8,6 +8,7 @@ import com.toedter.calendar.JDateChooser;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.border.TitledBorder;
 import java.text.SimpleDateFormat;
@@ -262,7 +263,7 @@ class KanbanBoard extends JFrame {
         if (dialog.isConfirmed()) {
             addTask(
                 dialog.getTaskName(),
-                "A Fazer",
+                "TODO",
                 dialog.getTaskPriority(),
                 dialog.getTaskDueDate()
             );
@@ -287,10 +288,10 @@ class KanbanBoard extends JFrame {
         JPanel targetPanel = null;
         ArrayList<JPanel> targetList = null;
         
-        if (column.equals("A Fazer")) {
+        if (column.equals("TODO")) {
             targetPanel = (JPanel)((JScrollPane)todoPanel.getComponent(0)).getViewport().getView();
             targetList = todoTasks;
-        } else if (column.equals("Fazendo")) {
+        } else if (column.equals("DOING")) {
             targetPanel = (JPanel)((JScrollPane)doingPanel.getComponent(0)).getViewport().getView();
             targetList = doingTasks;
         } else {
@@ -311,11 +312,13 @@ class KanbanBoard extends JFrame {
     private JPanel createTaskPanel(int taskId, String taskName, Task.Priority priority, Date dueDate) {
         JPanel taskPanel = new JPanel();
         taskPanel.setLayout(new BorderLayout(5, 5));
-        taskPanel.setPreferredSize(new Dimension(200, 100));
+        taskPanel.setPreferredSize(new Dimension(180, 80));
         taskPanel.setBackground(new Color(47, 49, 54));
         taskPanel.setBorder(BorderFactory.createLineBorder(new Color(32, 34, 37)));
         taskPanel.putClientProperty("taskId", taskId);
-        taskPanel.putClientProperty("taskName", taskName); // Armazenar o nome como propriedade
+        taskPanel.putClientProperty("taskName", taskName);
+        taskPanel.putClientProperty("taskPriority", priority);
+        taskPanel.putClientProperty("taskDueDate", dueDate);
         
         // Painel superior com nome e prioridade
         JPanel headerPanel = new JPanel(new BorderLayout(5, 0));
@@ -323,160 +326,207 @@ class KanbanBoard extends JFrame {
         
         // Nome da tarefa
         JLabel nameLabel = new JLabel(taskName);
-        nameLabel.setName("taskNameLabel"); // Identificador único
         nameLabel.setForeground(Color.WHITE);
+        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         headerPanel.add(nameLabel, BorderLayout.CENTER);
         
         // Indicador de prioridade
         JPanel priorityIndicator = new JPanel();
+        priorityIndicator.setName("priorityIndicator");
         priorityIndicator.setPreferredSize(new Dimension(10, 20));
-        priorityIndicator.setBackground(Color.decode(priority.getColor()));
+        priorityIndicator.setBackground(getPriorityColor(priority));
         headerPanel.add(priorityIndicator, BorderLayout.WEST);
         
-        taskPanel.add(headerPanel, BorderLayout.NORTH);
+        // Painel inferior com data e ícones
+        JPanel bottomPanel = new JPanel(new BorderLayout(5, 0));
+        bottomPanel.setBackground(new Color(47, 49, 54));
         
-        // Data de vencimento e dias restantes
+        // Data de vencimento
         if (dueDate != null) {
-            JPanel datePanel = new JPanel(new GridLayout(2, 1, 0, 2));
-            datePanel.setBackground(new Color(47, 49, 54));
-            
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             JLabel dateLabel = new JLabel(sdf.format(dueDate));
             dateLabel.setForeground(Color.LIGHT_GRAY);
-            dateLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-            
-            // Calcular dias restantes
-            long diff = dueDate.getTime() - new Date().getTime();
-            long days = diff / (24 * 60 * 60 * 1000);
-            
-            JLabel daysLabel = new JLabel();
-            daysLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
-            
-            if (days < 0) {
-                daysLabel.setText("ATRASADO: " + Math.abs(days) + " dias");
-                daysLabel.setForeground(Color.decode("#FF4444"));
-            } else if (days == 0) {
-                daysLabel.setText("ENTREGA: Hoje");
-                daysLabel.setForeground(Color.decode("#FFB74D"));
-            } else if (days == 1) {
-                daysLabel.setText("ENTREGA: Amanhã");
-                daysLabel.setForeground(Color.decode("#FFB74D"));
-            } else if (days <= 3) {
-                daysLabel.setText("ENTREGA: " + days + " dias");
-                daysLabel.setForeground(Color.decode("#FFB74D"));
-            } else {
-                daysLabel.setText("ENTREGA: " + days + " dias");
-                daysLabel.setForeground(Color.decode("#4CAF50"));
+            dateLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+            bottomPanel.add(dateLabel, BorderLayout.WEST);
+        }
+        
+        // Painel de ícones
+        JPanel iconsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        iconsPanel.setBackground(new Color(47, 49, 54));
+        
+        // Ícone e barra de progresso da checklist
+        JPanel checklistPanel = new JPanel(new BorderLayout(2, 0));
+        checklistPanel.setBackground(new Color(47, 49, 54));
+        
+        JLabel checklistIcon = new JLabel("\u2611"); // Ícone de checklist (Unicode)
+        checklistIcon.setForeground(new Color(88, 101, 242));
+        checklistIcon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        checklistIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        checklistIcon.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) { // Clique esquerdo
+                    showChecklistDialog(taskId, taskName);
+                }
             }
             
-            datePanel.add(dateLabel);
-            datePanel.add(daysLabel);
-            taskPanel.add(datePanel, BorderLayout.CENTER);
-        }
-        
-        // Menu de contexto
-        JPopupMenu popupMenu = new JPopupMenu();
-        // Cores do Discord para o menu principal
-        Color menuBackground = new Color(47, 49, 54);     // Fundo escuro
-        popupMenu.setBackground(menuBackground);
-        popupMenu.setBorder(BorderFactory.createLineBorder(new Color(32, 34, 37)));
-        
-        // Opções de mover
-        JMenu moveMenu = new JMenu("Mover para");
-        styleMenuItem(moveMenu);
-        
-        JMenuItem moveToTodo = new JMenuItem("A Fazer");
-        styleMenuItem(moveToTodo);
-        moveToTodo.addActionListener(e -> moveTask(taskPanel, "A Fazer"));
-        
-        JMenuItem moveToDoing = new JMenuItem("Fazendo");
-        styleMenuItem(moveToDoing);
-        moveToDoing.addActionListener(e -> moveTask(taskPanel, "Fazendo"));
-        
-        JMenuItem moveToDone = new JMenuItem("Feito");
-        styleMenuItem(moveToDone);
-        moveToDone.addActionListener(e -> moveTask(taskPanel, "Feito"));
-        
-        moveMenu.add(moveToTodo);
-        moveMenu.add(moveToDoing);
-        moveMenu.add(moveToDone);
-        
-        // Opções de prioridade
-        JMenu priorityMenu = new JMenu("Prioridade");
-        styleMenuItem(priorityMenu);
-        
-        for (Task.Priority p : Task.Priority.values()) {
-            JMenuItem priorityItem = new JMenuItem(p.name());
-            styleMenuItem(priorityItem);
-            priorityItem.setBackground(Color.decode(p.getColor()));
-            priorityItem.addActionListener(e -> {
-                DatabaseManager.updateTask(taskId, taskName, getCurrentColumn(taskPanel), p, dueDate);
-                refreshTasks();
-            });
-            priorityMenu.add(priorityItem);
-        }
-        
-        // Opção de data
-        JMenuItem dateItem = new JMenuItem("Alterar Data");
-        styleMenuItem(dateItem);
-        dateItem.addActionListener(e -> {
-            JDateChooser chooser = new JDateChooser();
-            chooser.setDate(dueDate);
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                checklistIcon.setForeground(new Color(88, 101, 242).darker());
+            }
             
-            int result = JOptionPane.showConfirmDialog(
-                this,
-                chooser,
-                "Selecione a Data",
-                JOptionPane.OK_CANCEL_OPTION
-            );
-            
-            if (result == JOptionPane.OK_OPTION) {
-                DatabaseManager.updateTask(
-                    taskId,
-                    taskName,
-                    getCurrentColumn(taskPanel),
-                    priority,
-                    chooser.getDate()
-                );
-                refreshTasks();
+            @Override
+            public void mouseExited(MouseEvent e) {
+                checklistIcon.setForeground(new Color(88, 101, 242));
             }
         });
         
-        // Adicionar itens ao menu
-        popupMenu.add(moveMenu);
-        popupMenu.addSeparator();
-        popupMenu.add(priorityMenu);
-        popupMenu.add(dateItem);
-        popupMenu.addSeparator();
+        JProgressBar progressBar = new JProgressBar(0, 100);
+        progressBar.setPreferredSize(new Dimension(40, 8));
+        progressBar.setBackground(new Color(64, 68, 75));
+        progressBar.setForeground(new Color(88, 101, 242));
+        progressBar.setBorderPainted(false);
         
-        // Opção de excluir
-        JMenuItem deleteItem = new JMenuItem("Excluir");
-        styleMenuItem(deleteItem);
-        deleteItem.setForeground(new Color(255, 99, 71));
-        deleteItem.addActionListener(e -> deleteTask(taskPanel));
+        // Atualiza o progresso inicial
+        try {
+            double progress = DatabaseManager.getChecklistProgress(taskId);
+            progressBar.setValue((int) progress);
+            progressBar.setToolTipText(String.format("%.0f%% completo", progress));
+        } catch ( SQLException e) {
+            System.err.println("Erro ao carregar progresso da checklist: " + e.getMessage());
+        }
         
-        popupMenu.add(deleteItem);
+        checklistPanel.add(checklistIcon, BorderLayout.WEST);
+        checklistPanel.add(progressBar, BorderLayout.CENTER);
+        iconsPanel.add(checklistPanel);
         
-        // Adicionar menu ao painel
+        bottomPanel.add(iconsPanel, BorderLayout.EAST);
+        
+        // Adiciona os painéis ao painel principal
+        taskPanel.add(headerPanel, BorderLayout.NORTH);
+        taskPanel.add(bottomPanel, BorderLayout.SOUTH);
+        
+        // Mouse listener para arrastar e soltar
         taskPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                showPopupMenu(e);
-            }
-            
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                showPopupMenu(e);
-            }
-            
-            private void showPopupMenu(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    popupMenu.show(taskPanel, e.getX(), e.getY());
+                if (e.getButton() == MouseEvent.BUTTON3) { // Clique direito
+                    showTaskContextMenu(e, taskPanel);
                 }
             }
         });
         
         return taskPanel;
+    }
+    
+    private Color getPriorityColor(Task.Priority priority) {
+        switch (priority) {
+            case ALTA:
+                return Color.RED;
+            case MEDIA:
+                return Color.YELLOW;
+            case BAIXA:
+                return Color.GREEN;
+        }
+        return Color.WHITE;
+    }
+    
+    private void showChecklistDialog(int taskId, String taskName) {
+        ChecklistDialog dialog = new ChecklistDialog(this, taskId, taskName);
+        dialog.setVisible(true);
+        refreshTasks(); // Atualiza o progresso após fechar o diálogo
+    }
+    
+    private void showTaskContextMenu(MouseEvent e, JPanel taskPanel) {
+        JPopupMenu popupMenu = new JPopupMenu();
+        
+        JMenuItem editItem = new JMenuItem("Editar");
+        JMenuItem deleteItem = new JMenuItem("Excluir");
+        JMenuItem checklistItem = new JMenuItem("Checklist");
+        
+        // Submenu Mover Para
+        JMenu moveToMenu = new JMenu("Mover para");
+        String currentColumn = getCurrentColumn(taskPanel);
+        
+        if (!"TODO".equals(currentColumn)) {
+            JMenuItem moveToTodoItem = new JMenuItem("A Fazer");
+            moveToTodoItem.addActionListener(event -> moveTask(taskPanel, "TODO"));
+            moveToMenu.add(moveToTodoItem);
+        }
+        
+        if (!"DOING".equals(currentColumn)) {
+            JMenuItem moveToDoingItem = new JMenuItem("Fazendo");
+            moveToDoingItem.addActionListener(event -> moveTask(taskPanel, "DOING"));
+            moveToMenu.add(moveToDoingItem);
+        }
+        
+        if (!"DONE".equals(currentColumn)) {
+            JMenuItem moveToDoneItem = new JMenuItem("Feito");
+            moveToDoneItem.addActionListener(event -> moveTask(taskPanel, "DONE"));
+            moveToMenu.add(moveToDoneItem);
+        }
+        
+        // Submenu Prioridade
+        JMenu priorityMenu = new JMenu("Prioridade");
+        Task.Priority currentPriority = (Task.Priority) taskPanel.getClientProperty("taskPriority");
+        
+        for (Task.Priority priority : Task.Priority.values()) {
+            if (priority != currentPriority) {
+                JMenuItem priorityItem = new JMenuItem(priority.toString());
+                priorityItem.addActionListener(event -> {
+                    int taskId = (int) taskPanel.getClientProperty("taskId");
+                    updateTaskPriority(taskId, priority, taskPanel);
+                });
+                priorityMenu.add(priorityItem);
+            }
+        }
+        
+        editItem.addActionListener(event -> {
+            int taskId = (int) taskPanel.getClientProperty("taskId");
+            String taskName = (String) taskPanel.getClientProperty("taskName");
+            Task.Priority priority = (Task.Priority) taskPanel.getClientProperty("taskPriority");
+            Date dueDate = (Date) taskPanel.getClientProperty("taskDueDate");
+            showTaskDialog(taskId, taskName, priority, dueDate);
+        });
+        
+        deleteItem.addActionListener(event -> {
+            int taskId = (int) taskPanel.getClientProperty("taskId");
+            String taskName = (String) taskPanel.getClientProperty("taskName");
+            deleteTask(taskId, taskName, taskPanel);
+        });
+        
+        checklistItem.addActionListener(event -> {
+            int taskId = (int) taskPanel.getClientProperty("taskId");
+            String taskName = (String) taskPanel.getClientProperty("taskName");
+            ChecklistDialog dialog = new ChecklistDialog(this, taskId, taskName);
+            dialog.setVisible(true);
+        });
+        
+        popupMenu.add(editItem);
+        popupMenu.add(deleteItem);
+        popupMenu.add(moveToMenu);
+        popupMenu.add(priorityMenu);
+        popupMenu.addSeparator();
+        popupMenu.add(checklistItem);
+        
+        // Estilizar os itens do menu
+        styleMenuItem(editItem);
+        styleMenuItem(deleteItem);
+        styleMenuItem(checklistItem);
+        styleMenuItem(moveToMenu);
+        styleMenuItem(priorityMenu);
+        for (Component item : moveToMenu.getMenuComponents()) {
+            if (item instanceof JMenuItem) {
+                styleMenuItem((JMenuItem) item);
+            }
+        }
+        for (Component item : priorityMenu.getMenuComponents()) {
+            if (item instanceof JMenuItem) {
+                styleMenuItem((JMenuItem) item);
+            }
+        }
+        
+        popupMenu.show(e.getComponent(), e.getX(), e.getY());
     }
     
     // Método auxiliar para estilizar itens do menu
@@ -536,15 +586,15 @@ class KanbanBoard extends JFrame {
             );
             
             switch (task.getColumn()) {
-                case "A Fazer":
+                case "TODO":
                     todoTasks.add(taskPanel);
                     todoTasksPanel.add(taskPanel);
                     break;
-                case "Fazendo":
+                case "DOING":
                     doingTasks.add(taskPanel);
                     doingTasksPanel.add(taskPanel);
                     break;
-                case "Feito":
+                case "DONE":
                     doneTasks.add(taskPanel);
                     doneTasksPanel.add(taskPanel);
                     break;
@@ -592,14 +642,14 @@ class KanbanBoard extends JFrame {
         
         // Verificar em qual painel a tarefa está
         if (todoTasksPanel.isAncestorOf(taskPanel)) {
-            return "A Fazer";
+            return "TODO";
         } else if (doingTasksPanel.isAncestorOf(taskPanel)) {
-            return "Fazendo";
+            return "DOING";
         } else if (doneTasksPanel.isAncestorOf(taskPanel)) {
-            return "Feito";
+            return "DONE";
         }
         
-        return "A Fazer"; // Coluna padrão se não encontrar
+        return "TODO"; // Coluna padrão se não encontrar
     }
     
     private void moveTask(JPanel taskPanel, String targetColumn) {
@@ -650,19 +700,8 @@ class KanbanBoard extends JFrame {
         }
     }
     
-    private void deleteTask(JPanel taskPanel) {
+    private void deleteTask(int taskId, String taskName, JPanel taskPanel) {
         try {
-            int taskId = (int) taskPanel.getClientProperty("taskId");
-            String taskName = (String) taskPanel.getClientProperty("taskName");
-            
-            if (taskName == null || taskName.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                    "Erro ao obter nome da tarefa.",
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
             String column = getCurrentColumn(taskPanel);
             
             // Confirmar exclusão
@@ -714,5 +753,118 @@ class KanbanBoard extends JFrame {
     private void showNotificationsDialog() {
         NotificationsDialog dialog = new NotificationsDialog(this, currentUser);
         dialog.setVisible(true);
+    }
+    
+    private void showTaskDialog(int taskId, String taskName, Task.Priority priority, Date dueDate) {
+        TaskDialog dialog = new TaskDialog(
+            this,
+            "Editar Tarefa",
+            taskName,
+            priority,
+            dueDate
+        );
+        dialog.setVisible(true);
+        
+        if (dialog.isConfirmed()) {
+            String newName = dialog.getTaskName();
+            Task.Priority newPriority = dialog.getTaskPriority();
+            Date newDueDate = dialog.getTaskDueDate();
+            
+            // Find the task panel by taskId
+            JPanel taskPanel = findTaskPanelById(taskId);
+            if (taskPanel == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Erro ao encontrar o painel da tarefa.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            String currentColumn = getCurrentColumn(taskPanel);
+            
+            if (DatabaseManager.updateTask(taskId, newName, currentColumn, newPriority, newDueDate)) {
+                // Registrar atividade
+                DatabaseManager.logActivity(
+                    currentUser.getId(),
+                    taskId,
+                    "EDIT",
+                    "editou a tarefa '" + taskName + "'",
+                    currentColumn,
+                    currentColumn
+                );
+                
+                // Atualizar interface
+                refreshTasks();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Erro ao atualizar tarefa no banco de dados.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private JPanel findTaskPanelById(int taskId) {
+        // Search in all columns
+        for (JPanel taskPanel : todoTasks) {
+            if ((int)taskPanel.getClientProperty("taskId") == taskId) {
+                return taskPanel;
+            }
+        }
+        for (JPanel taskPanel : doingTasks) {
+            if ((int)taskPanel.getClientProperty("taskId") == taskId) {
+                return taskPanel;
+            }
+        }
+        for (JPanel taskPanel : doneTasks) {
+            if ((int)taskPanel.getClientProperty("taskId") == taskId) {
+                return taskPanel;
+            }
+        }
+        return null;
+    }
+    
+    private void updateTaskPriority(int taskId, Task.Priority newPriority, JPanel taskPanel) {
+        try {
+            if (DatabaseManager.updateTaskPriority(taskId, newPriority)) {
+                // Atualizar o painel da tarefa
+                taskPanel.putClientProperty("taskPriority", newPriority);
+                
+                // Procurar o painel de cabeçalho
+                for (Component comp : taskPanel.getComponents()) {
+                    if (comp instanceof JPanel) {
+                        JPanel headerPanel = (JPanel) comp;
+                        // Procurar o indicador de prioridade dentro do painel de cabeçalho
+                        for (Component headerComp : headerPanel.getComponents()) {
+                            if (headerComp instanceof JPanel && headerComp.getName() != null && 
+                                headerComp.getName().equals("priorityIndicator")) {
+                                ((JPanel) headerComp).setBackground(getPriorityColor(newPriority));
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Registrar atividade
+                String currentColumn = getCurrentColumn(taskPanel);
+                DatabaseManager.logActivity(
+                    currentUser.getId(),
+                    taskId,
+                    "PRIORITY",
+                    "alterou a prioridade para " + newPriority,
+                    currentColumn,
+                    currentColumn
+                );
+                
+                // Forçar repaint do painel
+                taskPanel.revalidate();
+                taskPanel.repaint();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Erro ao atualizar prioridade: " + e.getMessage(),
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
