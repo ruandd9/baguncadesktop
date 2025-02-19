@@ -360,4 +360,273 @@ public class DatabaseManager {
         
         return activities;
     }
+    
+    // Métodos para gerenciamento de equipes
+    
+    public static int createTeam(String name, String description, int leaderId) {
+        String sql = "INSERT INTO teams (name, description, leader_id) VALUES (?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            pstmt.setString(1, name);
+            pstmt.setString(2, description);
+            pstmt.setInt(3, leaderId);
+            
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows > 0) {
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    
+    public static boolean addTeamMember(int teamId, int userId) {
+        String sql = "INSERT INTO team_members (team_id, user_id) VALUES (?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, teamId);
+            pstmt.setInt(2, userId);
+            
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public static boolean removeTeamMember(int teamId, int userId) {
+        String sql = "DELETE FROM team_members WHERE team_id = ? AND user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, teamId);
+            pstmt.setInt(2, userId);
+            
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public static Team getTeam(int teamId) {
+        String sql = "SELECT t.*, u.id as leader_user_id, u.name as leader_name, u.email as leader_email " +
+                    "FROM teams t " +
+                    "JOIN users u ON t.leader_id = u.id " +
+                    "WHERE t.id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, teamId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                User leader = new User(
+                    rs.getInt("leader_user_id"),
+                    rs.getString("leader_name"),
+                    rs.getString("leader_email")
+                );
+                
+                Team team = new Team(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    leader
+                );
+                
+                team.setDates(rs.getTimestamp("created_at"), rs.getTimestamp("updated_at"));
+                loadTeamMembers(team);
+                return team;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    private static void loadTeamMembers(Team team) {
+        String sql = "SELECT u.* FROM users u " +
+                    "JOIN team_members tm ON u.id = tm.user_id " +
+                    "WHERE tm.team_id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, team.getId());
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                User member = new User(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("email")
+                );
+                team.addMember(member);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public static ArrayList<Team> getUserTeams(int userId) {
+        ArrayList<Team> teams = new ArrayList<>();
+        String sql = "SELECT DISTINCT t.* FROM teams t " +
+                    "LEFT JOIN team_members tm ON t.id = tm.team_id " +
+                    "WHERE t.leader_id = ? OR tm.user_id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userId);
+            pstmt.setInt(2, userId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Team team = getTeam(rs.getInt("id"));
+                if (team != null) {
+                    teams.add(team);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return teams;
+    }
+    
+    public static boolean updateTeam(int teamId, String name, String description, int leaderId) {
+        String sql = "UPDATE teams SET name = ?, description = ?, leader_id = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, name);
+            pstmt.setString(2, description);
+            pstmt.setInt(3, leaderId);
+            pstmt.setInt(4, teamId);
+            
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public static boolean deleteTeam(int teamId) {
+        String sql = "DELETE FROM teams WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, teamId);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public static User getUserByEmail(String email) {
+        String sql = "SELECT * FROM users WHERE email = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return new User(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("email")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    // Métodos para notificações de equipe
+    
+    public static void createTeamNotification(int userId, int teamId, String message, String type) {
+        String sql = "INSERT INTO team_notifications (user_id, team_id, message, type) VALUES (?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userId);
+            pstmt.setInt(2, teamId);
+            pstmt.setString(3, message);
+            pstmt.setString(4, type);
+            
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public static ArrayList<TeamNotification> getUserNotifications(int userId) {
+        ArrayList<TeamNotification> notifications = new ArrayList<>();
+        String sql = "SELECT n.*, t.name as team_name FROM team_notifications n " +
+                    "JOIN teams t ON n.team_id = t.id " +
+                    "WHERE n.user_id = ? " +
+                    "ORDER BY n.created_at DESC LIMIT 50";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                TeamNotification notification = new TeamNotification(
+                    rs.getInt("id"),
+                    rs.getInt("user_id"),
+                    rs.getInt("team_id"),
+                    rs.getString("message"),
+                    rs.getString("type"),
+                    rs.getTimestamp("created_at"),
+                    rs.getBoolean("is_read")
+                );
+                notification.setTeamName(rs.getString("team_name"));
+                notifications.add(notification);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return notifications;
+    }
+    
+    public static void markNotificationAsRead(int notificationId) {
+        String sql = "UPDATE team_notifications SET is_read = TRUE WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, notificationId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public static int getUnreadNotificationsCount(int userId) {
+        String sql = "SELECT COUNT(*) FROM team_notifications WHERE user_id = ? AND is_read = FALSE";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

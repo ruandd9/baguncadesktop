@@ -39,12 +39,40 @@ CREATE TABLE IF NOT EXISTS activities (
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL
 );
 
+-- Criar a tabela de equipes
+CREATE TABLE IF NOT EXISTS teams (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    leader_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (leader_id) REFERENCES users(id)
+);
+
+-- Criar a tabela de membros da equipe
+CREATE TABLE IF NOT EXISTS team_members (
+    team_id INT NOT NULL,
+    user_id INT NOT NULL,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (team_id, user_id),
+    FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Tabela para notificações de equipe
+CREATE TABLE IF NOT EXISTS team_notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    team_id INT NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50) NOT NULL,  -- ADDED, REMOVED, PROMOTED
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_read BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);
+
 -- Inserir um usuário de exemplo
 INSERT INTO users (name, email, password) VALUES
     ('Admin', 'admin@example.com', 'admin123');
-
--- Inserir algumas tarefas de exemplo
-INSERT INTO tasks (name, column_name, created_by, priority, due_date) VALUES
-    ('Implementar login', 'A Fazer', 1, 'ALTA', DATE_ADD(CURRENT_DATE, INTERVAL 3 DAY)),
-    ('Desenvolver interface', 'Fazendo', 1, 'MEDIA', DATE_ADD(CURRENT_DATE, INTERVAL 5 DAY)),
-    ('Testar aplicação', 'A Fazer', 1, 'BAIXA', DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY));

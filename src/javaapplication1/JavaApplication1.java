@@ -106,19 +106,68 @@ class KanbanBoard extends JFrame {
         addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         addButton.addActionListener(e -> showAddTaskDialog());
         
-        // Efeito hover no botão
-        addButton.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                addButton.setBackground(buttonColor.darker());
-            }
-            public void mouseExited(MouseEvent e) {
-                addButton.setBackground(buttonColor);
+        // Botão Gerenciar Equipes
+        JButton teamsButton = new JButton("Equipes");
+        teamsButton.setBackground(buttonColor);
+        teamsButton.setForeground(textColor);
+        teamsButton.setFocusPainted(false);
+        teamsButton.setBorderPainted(false);
+        teamsButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        teamsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        teamsButton.addActionListener(e -> showTeamsDialog());
+        
+        // Botão de Notificações
+        JButton notificationsButton = new JButton("🔔");
+        notificationsButton.setBackground(buttonColor);
+        notificationsButton.setForeground(textColor);
+        notificationsButton.setFocusPainted(false);
+        notificationsButton.setBorderPainted(false);
+        notificationsButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        notificationsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        notificationsButton.addActionListener(e -> showNotificationsDialog());
+        
+        // Timer para verificar notificações não lidas
+        Timer notificationTimer = new Timer(5000, e -> {
+            int unreadCount = DatabaseManager.getUnreadNotificationsCount(currentUser.getId());
+            if (unreadCount > 0) {
+                notificationsButton.setText("🔔 (" + unreadCount + ")");
+                notificationsButton.setBackground(buttonColor.brighter());
+            } else {
+                notificationsButton.setText("🔔");
+                notificationsButton.setBackground(buttonColor);
             }
         });
+        notificationTimer.start();
+        
+        // Efeito hover nos botões
+        MouseAdapter buttonHover = new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                ((JButton)e.getSource()).setBackground(buttonColor.darker());
+            }
+            public void mouseExited(MouseEvent e) {
+                JButton button = (JButton)e.getSource();
+                if (button == notificationsButton && button.getText().contains("(")) {
+                    button.setBackground(buttonColor.brighter());
+                } else {
+                    button.setBackground(buttonColor);
+                }
+            }
+        };
+        
+        addButton.addMouseListener(buttonHover);
+        teamsButton.addMouseListener(buttonHover);
+        notificationsButton.addMouseListener(buttonHover);
         
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         buttonPanel.setBackground(backgroundColor);
         buttonPanel.add(addButton);
+        buttonPanel.add(teamsButton);
+        buttonPanel.add(notificationsButton);
+        
+        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+        centerPanel.setBackground(backgroundColor);
+        centerPanel.add(buttonPanel, BorderLayout.NORTH);
+        centerPanel.add(columnsPanel, BorderLayout.CENTER);
         
         // Criar painel de atividades
         JPanel activityPanel = new JPanel(new BorderLayout(5, 5));
@@ -171,12 +220,6 @@ class KanbanBoard extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBackground(backgroundColor);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        // Painel central com botão e colunas
-        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
-        centerPanel.setBackground(backgroundColor);
-        centerPanel.add(buttonPanel, BorderLayout.NORTH);
-        centerPanel.add(columnsPanel, BorderLayout.CENTER);
         
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         mainPanel.add(activityPanel, BorderLayout.EAST);
@@ -333,7 +376,10 @@ class KanbanBoard extends JFrame {
         
         // Menu de contexto
         JPopupMenu popupMenu = new JPopupMenu();
-        popupMenu.setBackground(new Color(47, 49, 54));
+        // Cores do Discord para o menu principal
+        Color menuBackground = new Color(47, 49, 54);     // Fundo escuro
+        popupMenu.setBackground(menuBackground);
+        popupMenu.setBorder(BorderFactory.createLineBorder(new Color(32, 34, 37)));
         
         // Opções de mover
         JMenu moveMenu = new JMenu("Mover para");
@@ -433,6 +479,37 @@ class KanbanBoard extends JFrame {
         return taskPanel;
     }
     
+    // Método auxiliar para estilizar itens do menu
+    private void styleMenuItem(JMenuItem item) {
+        // Cores do Discord
+        Color menuBackground = new Color(47, 49, 54);     // Fundo escuro
+        Color menuHoverColor = new Color(71, 76, 84);    // Cor quando passa o mouse
+        Color menuTextColor = new Color(220, 221, 222);  // Texto claro
+        
+        item.setBackground(menuBackground);
+        item.setForeground(menuTextColor);
+        item.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        item.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));  // Mais espaçamento
+        item.setOpaque(true);  // Importante para ver a cor de fundo
+        
+        // Efeito hover mais suave
+        item.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                item.setBackground(menuHoverColor);
+            }
+            public void mouseExited(MouseEvent e) {
+                item.setBackground(menuBackground);
+            }
+        });
+        
+        // Se for um JMenu (submenus), personalizar a popup
+        if (item instanceof JMenu) {
+            JMenu menu = (JMenu) item;
+            menu.getPopupMenu().setBackground(menuBackground);
+            menu.getPopupMenu().setBorder(BorderFactory.createLineBorder(new Color(32, 34, 37)));
+        }
+    }
+    
     private void refreshTasks() {
         // Obter os painéis internos dos JScrollPane
         JPanel todoTasksPanel = (JPanel)((JScrollPane)todoPanel.getComponent(0)).getViewport().getView();
@@ -523,24 +600,6 @@ class KanbanBoard extends JFrame {
         }
         
         return "A Fazer"; // Coluna padrão se não encontrar
-    }
-    
-    // Método auxiliar para estilizar itens do menu
-    private void styleMenuItem(JMenuItem item) {
-        item.setBackground(new Color(47, 49, 54));
-        item.setForeground(Color.WHITE);
-        item.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        item.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        
-        // Efeito hover
-        item.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                item.setBackground(new Color(71, 76, 84));
-            }
-            public void mouseExited(MouseEvent e) {
-                item.setBackground(new Color(47, 49, 54));
-            }
-        });
     }
     
     private void moveTask(JPanel taskPanel, String targetColumn) {
@@ -644,5 +703,16 @@ class KanbanBoard extends JFrame {
                 "Erro",
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    private void showTeamsDialog() {
+        // Mostrar diálogo de lista de equipes
+        TeamsListDialog dialog = new TeamsListDialog(this, currentUser);
+        dialog.setVisible(true);
+    }
+    
+    private void showNotificationsDialog() {
+        NotificationsDialog dialog = new NotificationsDialog(this, currentUser);
+        dialog.setVisible(true);
     }
 }
