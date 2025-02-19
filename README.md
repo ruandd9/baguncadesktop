@@ -44,7 +44,16 @@ git clone [URL_DO_SEU_REPOSITORIO]
   - `JavaApplication1.java` - Classe principal e interface Kanban
   - `DatabaseManager.java` - Gerenciamento do banco de dados
   - `LoginDialog.java` - Tela de login
+  - `RegisterDialog.java` - Tela de registro de usuário
   - `Task.java` - Modelo de tarefa
   - `User.java` - Modelo de usuário
+  - `Team.java` - Modelo de equipe
+  - `TeamDialog.java` - Tela de gerenciamento de equipe
+  - `TeamsListDialog.java` - Lista de equipes disponíveis
+  - `TeamNotification.java` - Modelo de notificação de equipe
+  - `NotificationsDialog.java` - Tela de notificações
+  - `ChecklistDialog.java` - Tela de gerenciamento de checklist
+  - `ChecklistItem.java` - Modelo de item de checklist
+  - `TaskDialog.java` - Tela de criação/edição de tarefa
 - `src/database/`
   - `kanban_db.sql` - Script de criação do banco de dados
