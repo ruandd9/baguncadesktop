@@ -52,6 +52,18 @@ public class RegisterDialog extends JDialog {
         centerContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerContainer.setMaximumSize(new Dimension(300, Integer.MAX_VALUE));
 
+        // Logo placeholder
+        JLabel logoLabel = new JLabel();
+        logoLabel.setPreferredSize(new Dimension(150, 150));
+        logoLabel.setMaximumSize(new Dimension(150, 150));
+        logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Comentado até ter a imagem real
+        // ImageIcon logo = new ImageIcon("path/to/logo.png");
+        // Image scaledImage = logo.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+        // logoLabel.setIcon(new ImageIcon(scaledImage));
+        centerContainer.add(logoLabel);
+        centerContainer.add(Box.createVerticalStrut(20));
+
         // Título
         JLabel titleLabel = new JLabel("Criar uma conta");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));

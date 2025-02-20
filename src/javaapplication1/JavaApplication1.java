@@ -7,6 +7,7 @@ package javaapplication1;
 import com.toedter.calendar.JDateChooser;
 import javax.swing.*;
 import java.awt.*;
+import static java.awt.Color.*;
 import java.awt.event.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -134,7 +135,7 @@ class KanbanBoard extends JFrame {
         JMenuItem logoutItem = new JMenuItem("Sair da conta");
         logoutItem.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         logoutItem.setBackground(columnColor);
-        logoutItem.setForeground(textColor);
+        logoutItem.setForeground(RED);
         logoutItem.setCursor(new Cursor(Cursor.HAND_CURSOR));
         logoutItem.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
@@ -455,7 +456,7 @@ class KanbanBoard extends JFrame {
         
         // Ícone e barra de progresso da checklist
         JPanel checklistPanel = new JPanel(new BorderLayout(2, 0));
-        checklistPanel.setBackground(new Color(47, 49, 54));
+        checklistPanel.setBackground(new Color(47, 49, 54));  
         
         JButton checklistButton = createChecklistButton(taskId);
         checklistPanel.add(checklistButton, BorderLayout.CENTER);
