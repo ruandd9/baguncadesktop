@@ -1,6 +1,7 @@
 package javaapplication1;
 
 import javax.swing.*;
+import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -11,133 +12,221 @@ public class RegisterDialog extends JDialog {
     private JPasswordField confirmPasswordField;
     private boolean registrationSuccessful = false;
     
+    // Cores do tema Discord
+    private static final Color BACKGROUND_COLOR = new Color(54, 57, 63);
+    private static final Color FIELD_COLOR = new Color(64, 68, 75);
+    private static final Color BUTTON_COLOR = new Color(88, 101, 242);
+    private static final Color BUTTON_HOVER_COLOR = new Color(71, 82, 196);
+    private static final Color TEXT_COLOR = Color.WHITE;
+    private static final Color FIELD_BORDER_COLOR = new Color(32, 34, 37);
+    private static final Font MAIN_FONT = new Font("Segoe UI", Font.PLAIN, 14);
+    
     public RegisterDialog(Window owner) {
         super(owner, "Criar Conta", ModalityType.APPLICATION_MODAL);
         setupUI();
     }
     
     private void setupUI() {
-        // Cores do tema Discord
-        Color backgroundColor = new Color(54, 57, 63);
-        Color fieldColor = new Color(64, 68, 75);
-        Color buttonColor = new Color(88, 101, 242);
-        Color textColor = Color.WHITE;
-        
         // Configurar layout
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
         
-        // Painel principal
-        JPanel mainPanel = new JPanel(new GridBagLayout());
-        mainPanel.setBackground(backgroundColor);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // Painel principal com padding
+        JPanel mainPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(BACKGROUND_COLOR);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        mainPanel.setBackground(BACKGROUND_COLOR);
+
+        // Container para centralizar o conteúdo
+        JPanel centerContainer = new JPanel();
+        centerContainer.setLayout(new BoxLayout(centerContainer, BoxLayout.Y_AXIS));
+        centerContainer.setBackground(BACKGROUND_COLOR);
+        centerContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerContainer.setMaximumSize(new Dimension(300, Integer.MAX_VALUE));
+
+        // Título
+        JLabel titleLabel = new JLabel("Criar uma conta");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setForeground(TEXT_COLOR);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerContainer.add(titleLabel);
         
-        // Labels e campos
-        JLabel nameLabel = new JLabel("Nome:");
-        nameLabel.setForeground(textColor);
-        nameField = new JTextField(20);
-        styleField(nameField, fieldColor, textColor);
+        centerContainer.add(Box.createVerticalStrut(30));
+
+        // Painel de campos
+        JPanel fieldsPanel = new JPanel();
+        fieldsPanel.setLayout(new BoxLayout(fieldsPanel, BoxLayout.Y_AXIS));
+        fieldsPanel.setBackground(BACKGROUND_COLOR);
+        fieldsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        fieldsPanel.setMaximumSize(new Dimension(300, Integer.MAX_VALUE));
         
-        JLabel emailLabel = new JLabel("Email:");
-        emailLabel.setForeground(textColor);
-        emailField = new JTextField(20);
-        styleField(emailField, fieldColor, textColor);
+        // Nome
+        JLabel nameLabel = new JLabel("NOME");
+        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        nameLabel.setForeground(new Color(185, 187, 190));
+        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fieldsPanel.add(nameLabel);
+        fieldsPanel.add(Box.createVerticalStrut(5));
         
-        JLabel passwordLabel = new JLabel("Senha:");
-        passwordLabel.setForeground(textColor);
-        passwordField = new JPasswordField(20);
-        styleField(passwordField, fieldColor, textColor);
+        nameField = createStyledField(new JTextField(20));
+        nameField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fieldsPanel.add(nameField);
+        fieldsPanel.add(Box.createVerticalStrut(15));
         
-        JLabel confirmLabel = new JLabel("Confirmar Senha:");
-        confirmLabel.setForeground(textColor);
-        confirmPasswordField = new JPasswordField(20);
-        styleField(confirmPasswordField, fieldColor, textColor);
+        // Email
+        JLabel emailLabel = new JLabel("EMAIL");
+        emailLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        emailLabel.setForeground(new Color(185, 187, 190));
+        emailLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fieldsPanel.add(emailLabel);
+        fieldsPanel.add(Box.createVerticalStrut(5));
+        
+        emailField = createStyledField(new JTextField(20));
+        emailField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fieldsPanel.add(emailField);
+        fieldsPanel.add(Box.createVerticalStrut(15));
+        
+        // Senha
+        JLabel passwordLabel = new JLabel("SENHA");
+        passwordLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        passwordLabel.setForeground(new Color(185, 187, 190));
+        passwordLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fieldsPanel.add(passwordLabel);
+        fieldsPanel.add(Box.createVerticalStrut(5));
+        
+        passwordField = createStyledPasswordField(new JPasswordField(20));
+        passwordField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fieldsPanel.add(passwordField);
+        fieldsPanel.add(Box.createVerticalStrut(15));
+        
+        // Confirmar Senha
+        JLabel confirmLabel = new JLabel("CONFIRMAR SENHA");
+        confirmLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        confirmLabel.setForeground(new Color(185, 187, 190));
+        confirmLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fieldsPanel.add(confirmLabel);
+        fieldsPanel.add(Box.createVerticalStrut(5));
+        
+        confirmPasswordField = createStyledPasswordField(new JPasswordField(20));
+        confirmPasswordField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fieldsPanel.add(confirmPasswordField);
+        
+        centerContainer.add(fieldsPanel);
+        centerContainer.add(Box.createVerticalStrut(25));
         
         // Botões
-        JButton registerButton = new JButton("Criar Conta");
-        styleButton(registerButton, buttonColor, textColor);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+        buttonPanel.setBackground(BACKGROUND_COLOR);
+        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        buttonPanel.setMaximumSize(new Dimension(300, Integer.MAX_VALUE));
+        
+        JButton registerButton = createStyledButton("Continuar", BUTTON_COLOR);
+        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         registerButton.addActionListener(e -> register());
-        
-        JButton cancelButton = new JButton("Cancelar");
-        styleButton(cancelButton, fieldColor, textColor);
-        cancelButton.addActionListener(e -> dispose());
-        
-        // Adicionar componentes
-        gbc.gridx = 0; gbc.gridy = 0;
-        mainPanel.add(nameLabel, gbc);
-        
-        gbc.gridx = 1;
-        mainPanel.add(nameField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 1;
-        mainPanel.add(emailLabel, gbc);
-        
-        gbc.gridx = 1;
-        mainPanel.add(emailField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 2;
-        mainPanel.add(passwordLabel, gbc);
-        
-        gbc.gridx = 1;
-        mainPanel.add(passwordField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 3;
-        mainPanel.add(confirmLabel, gbc);
-        
-        gbc.gridx = 1;
-        mainPanel.add(confirmPasswordField, gbc);
-        
-        // Painel de botões
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBackground(backgroundColor);
         buttonPanel.add(registerButton);
-        buttonPanel.add(cancelButton);
         
-        // Adicionar painéis ao diálogo
-        JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
-        contentPanel.setBackground(backgroundColor);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        contentPanel.add(mainPanel, BorderLayout.CENTER);
-        contentPanel.add(buttonPanel, BorderLayout.SOUTH);
+        buttonPanel.add(Box.createVerticalStrut(15));
         
-        add(contentPanel);
+        JPanel loginPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        loginPanel.setBackground(BACKGROUND_COLOR);
+        loginPanel.setMaximumSize(new Dimension(300, Integer.MAX_VALUE));
+        
+        JLabel hasAccountLabel = new JLabel("Já tem uma conta?");
+        hasAccountLabel.setForeground(new Color(185, 187, 190));
+        hasAccountLabel.setFont(MAIN_FONT);
+        loginPanel.add(hasAccountLabel);
+        
+        JButton loginButton = new JButton("Fazer Login");
+        loginButton.setFont(MAIN_FONT);
+        loginButton.setBorderPainted(false);
+        loginButton.setContentAreaFilled(false);
+        loginButton.setForeground(new Color(88, 101, 242));
+        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginButton.addActionListener(e -> dispose());
+        loginPanel.add(loginButton);
+        
+        buttonPanel.add(loginPanel);
+        
+        centerContainer.add(buttonPanel);
+        
+        // Adiciona o container centralizado ao painel principal
+        mainPanel.add(Box.createVerticalGlue());
+        mainPanel.add(centerContainer);
+        mainPanel.add(Box.createVerticalGlue());
+        
+        add(mainPanel, BorderLayout.CENTER);
         
         // Configurações finais
-        pack();
+        setSize(400, 600);
         setLocationRelativeTo(getOwner());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         
-        // Enter para registrar
+        // Adicionar handler de tecla Enter
         getRootPane().setDefaultButton(registerButton);
     }
     
-    private void styleField(JTextField field, Color bgColor, Color fgColor) {
-        field.setBackground(bgColor);
-        field.setForeground(fgColor);
-        field.setCaretColor(fgColor);
+    private JTextField createStyledField(JTextField field) {
+        field.setFont(MAIN_FONT);
+        field.setForeground(TEXT_COLOR);
+        field.setBackground(FIELD_COLOR);
         field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(32, 34, 37)),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+            BorderFactory.createLineBorder(FIELD_BORDER_COLOR),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
+        field.setMaximumSize(new Dimension(300, 40));
+        return field;
     }
     
-    private void styleButton(JButton button, Color bgColor, Color fgColor) {
-        button.setBackground(bgColor);
-        button.setForeground(fgColor);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    private JPasswordField createStyledPasswordField(JPasswordField field) {
+        field.setFont(MAIN_FONT);
+        field.setForeground(TEXT_COLOR);
+        field.setBackground(FIELD_COLOR);
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(FIELD_BORDER_COLOR),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        field.setMaximumSize(new Dimension(300, 40));
+        field.setEchoChar('●');
+        return field;
+    }
+    
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isPressed()) {
+                    g2.setColor(bgColor.darker());
+                } else if (getModel().isRollover()) {
+                    g2.setColor(BUTTON_HOVER_COLOR);
+                } else {
+                    g2.setColor(bgColor);
+                }
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 5, 5);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         
-        button.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(bgColor.darker());
-            }
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(bgColor);
-            }
-        });
+        button.setFont(MAIN_FONT);
+        button.setForeground(TEXT_COLOR);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setMaximumSize(new Dimension(300, 40));
+        
+        return button;
     }
     
     private void register() {

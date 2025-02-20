@@ -87,6 +87,95 @@ class KanbanBoard extends JFrame {
         
         // Configuração do layout principal
         setLayout(new BorderLayout());
+
+        // Barra superior com menu de usuário
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.setBackground(columnColor);
+        topBar.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+
+        // Menu de usuário
+        JPanel userMenu = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        userMenu.setBackground(columnColor);
+
+        // Botão do menu de usuário
+        JButton userButton = new JButton(user.getName());
+        userButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        userButton.setForeground(textColor);
+        userButton.setBackground(columnColor);
+        userButton.setBorderPainted(false);
+        userButton.setFocusPainted(false);
+        userButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        userButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                userButton.setBackground(new Color(66, 69, 73));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                userButton.setBackground(columnColor);
+            }
+        });
+
+        // Popup menu para o botão de usuário
+        JPopupMenu userPopup = new JPopupMenu();
+        userPopup.setBackground(columnColor);
+        
+        // Item de informações do usuário
+        JMenuItem userInfoItem = new JMenuItem("Conectado como " + user.getName());
+        userInfoItem.setEnabled(false);
+        userInfoItem.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        userInfoItem.setBackground(columnColor);
+        userInfoItem.setForeground(new Color(185, 187, 190));
+        userPopup.add(userInfoItem);
+        
+        userPopup.addSeparator();
+        
+        // Item de logout
+        JMenuItem logoutItem = new JMenuItem("Sair da conta");
+        logoutItem.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        logoutItem.setBackground(columnColor);
+        logoutItem.setForeground(textColor);
+        logoutItem.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoutItem.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Tem certeza que deseja sair da conta?",
+                "Confirmar Logout",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose();
+                SwingUtilities.invokeLater(() -> {
+                    JFrame frame = new JFrame();
+                    frame.setUndecorated(true);
+                    frame.setVisible(true);
+                    
+                    LoginDialog loginDialog = new LoginDialog(frame);
+                    loginDialog.setVisible(true);
+                    
+                    frame.dispose();
+                    
+                    if (loginDialog.isLoginSuccessful()) {
+                        User loggedUser = loginDialog.getLoggedUser();
+                        KanbanBoard board = new KanbanBoard(loggedUser);
+                        board.setVisible(true);
+                    } else {
+                        System.exit(0);
+                    }
+                });
+            }
+        });
+        userPopup.add(logoutItem);
+
+        userButton.addActionListener(e -> {
+            userPopup.show(userButton, 0, userButton.getHeight());
+        });
+
+        userMenu.add(userButton);
+        topBar.add(userMenu, BorderLayout.EAST);
+        add(topBar, BorderLayout.NORTH);
         
         // Painel para as colunas
         JPanel columnsPanel = new JPanel(new GridLayout(1, 3, 15, 0));
@@ -207,13 +296,6 @@ class KanbanBoard extends JFrame {
         buttonWrapper.add(refreshButton);
         activityPanel.add(buttonWrapper, BorderLayout.SOUTH);
         
-        // Atualizar log de atividades
-        updateActivityLog();
-        
-        // Timer para atualizar o log a cada 30 segundos
-        Timer timer = new Timer(30000, e -> updateActivityLog());
-        timer.start();
-        
         // Layout principal
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBackground(backgroundColor);
@@ -223,6 +305,12 @@ class KanbanBoard extends JFrame {
         mainPanel.add(activityPanel, BorderLayout.EAST);
         
         add(mainPanel);
+
+        // Atualizar tarefas e atividades ao iniciar
+        SwingUtilities.invokeLater(() -> {
+            refreshTasks();
+            updateActivityLog();
+        });
     }
     
     private JButton createTaskButton(String column) {
