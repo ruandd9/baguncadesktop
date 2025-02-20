@@ -1,15 +1,25 @@
-# Kanban Board
+# TodoBagunça - Kanban Board
 
-Um aplicativo de quadro Kanban desenvolvido em Java Swing com tema escuro inspirado no Discord.
+Um aplicativo de quadro Kanban desenvolvido como projeto acadêmico durante o curso Técnico em Desenvolvimento de Sistemas no SENAC, na Unidade Curricular de Desenvolvimento Desktop com Java.
+
+## Sobre o Projeto
+
+Este projeto foi desenvolvido em equipe por 5 estudantes, combinando conceitos de desenvolvimento desktop, interface gráfica com Java Swing, e gerenciamento de banco de dados. O resultado é uma aplicação Kanban moderna com tema escuro inspirado no Discord, demonstrando na prática os conhecimentos adquiridos durante o curso.
+
+## Equipe de Desenvolvimento
+- Desenvolvido por uma equipe de 5 estudantes no curso Técnico em Desenvolvimento de Sistemas - SENAC
 
 ## Funcionalidades
 
-- Interface moderna com tema escuro
-- Sistema de login de usuários
+- Interface moderna com tema escuro inspirado no Discord
+- Sistema de login e registro de usuários
 - Registro de atividades em tempo real
-- Click and drop de tarefas entre colunas
+- Gerenciamento de tarefas
 - Armazenamento em banco de dados MySQL
 - Menu de contexto para gerenciar tarefas
+- Sistema de notificações
+- Gerenciamento de equipes
+- Checklists para tarefas
 
 ## Requisitos
 
@@ -32,11 +42,12 @@ git clone [URL_DO_SEU_REPOSITORIO]
 - Email: admin@example.com
 - Senha: admin123
 
-## Tecnologias
+## Tecnologias Utilizadas
 
-- Java Swing
-- MySQL
-- JDBC - https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar - Calendar - https://repo1.maven.org/maven2/com/toedter/jcalendar/1.4/jcalendar-1.4.jar
+- Java Swing - Interface gráfica
+- MySQL - Banco de dados
+- JDBC - Conexão com banco de dados (https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar)
+- JCalendar - Seleção de datas (https://repo1.maven.org/maven2/com/toedter/jcalendar/1.4/jcalendar-1.4.jar)
 
 ## Estrutura do Projeto
 
@@ -57,3 +68,7 @@ git clone [URL_DO_SEU_REPOSITORIO]
   - `TaskDialog.java` - Tela de criação/edição de tarefa
 - `src/database/`
   - `kanban_db.sql` - Script de criação do banco de dados
+
+## Agradecimentos
+
+Agradecemos ao SENAC e aos professores da UC de Desenvolvimento Desktop com Java pelo suporte e orientação durante o desenvolvimento deste projeto.
