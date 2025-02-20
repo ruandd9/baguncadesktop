@@ -202,4 +202,8 @@ public class TaskDialog extends JDialog {
     public Date getTaskDueDate() {
         return dueDate;
     }
+    
+    public String getColumn() {
+        return "TODO"; // Nova tarefa sempre começa em "TODO"
+    }
 }

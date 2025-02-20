@@ -6,33 +6,23 @@ public class Task {
     private int id;
     private String name;
     private String column;
-    private int createdBy;
     private Priority priority;
     private Date dueDate;
+    private int userId;
     
     public enum Priority {
-        ALTA("#FF4444"),
-        MEDIA("#FFB74D"),
-        BAIXA("#4CAF50");
-        
-        private final String color;
-        
-        Priority(String color) {
-            this.color = color;
-        }
-        
-        public String getColor() {
-            return color;
-        }
+        ALTA,
+        MEDIA,
+        BAIXA
     }
     
-    public Task(int id, String name, String column, int createdBy, Priority priority, Date dueDate) {
+    public Task(int id, String name, String column, Priority priority, Date dueDate, int userId) {
         this.id = id;
         this.name = name;
         this.column = column;
-        this.createdBy = createdBy;
         this.priority = priority;
         this.dueDate = dueDate;
+        this.userId = userId;
     }
     
     public int getId() {
@@ -47,16 +37,20 @@ public class Task {
         return column;
     }
     
-    public int getCreatedBy() {
-        return createdBy;
-    }
-    
     public Priority getPriority() {
         return priority;
     }
     
     public Date getDueDate() {
         return dueDate;
+    }
+    
+    public int getUserId() {
+        return userId;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
     }
     
     public void setColumn(String column) {

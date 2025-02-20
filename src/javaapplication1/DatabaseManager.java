@@ -2,6 +2,8 @@ package javaapplication1;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JOptionPane;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -10,15 +12,15 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 
 public class DatabaseManager {
-    private static final String DB_URL = "jdbc:mysql://localhost:3307/kanban_db?useSSL=false&allowPublicKeyRetrieval=true";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/kanban_db?useSSL=false&allowPublicKeyRetrieval=true";
     private static final String USER = "root";
-    private static final String PASS = "senac";
+    private static final String PASS = "";
     
     // Testar conexão com o banco
     public static boolean testConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
+            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
                 return true;
             }
         } catch (ClassNotFoundException e) {
@@ -75,7 +77,7 @@ public class DatabaseManager {
             }
             
             // Executar o script SQL
-            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
+            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
                 // Dividir o script em comandos individuais
                 String[] commands = sqlScript.toString().split(";");
                 
@@ -248,9 +250,9 @@ public class DatabaseManager {
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getString("column_name"),
-                    rs.getInt("created_by"),
                     priority,
-                    dueDate
+                    dueDate,
+                    rs.getInt("created_by")
                 );
                 tasks.add(task);
             }
@@ -347,25 +349,26 @@ public class DatabaseManager {
     }
     
     // Obter atividades recentes
-    public static ArrayList<String> getRecentActivities() {
-        ArrayList<String> activities = new ArrayList<>();
-        String sql = "SELECT a.description, a.created_at, u.name as user_name " +
+    public static ArrayList<Map<String, Object>> getRecentActivities() {
+        ArrayList<Map<String, Object>> activities = new ArrayList<>();
+        String sql = "SELECT a.*, u.name as user_name " +
                     "FROM activities a " +
                     "JOIN users u ON a.user_id = u.id " +
-                    "ORDER BY a.created_at DESC LIMIT 50";
+                    "ORDER BY a.created_at DESC " +
+                    "LIMIT 50";
         
         try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
             
             while (rs.next()) {
-                String activity = String.format("%s - %s %s",
-                    sdf.format(rs.getTimestamp("created_at")),
-                    rs.getString("user_name"),
-                    rs.getString("description")
-                );
+                Map<String, Object> activity = new HashMap<>();
+                activity.put("action", rs.getString("action"));
+                activity.put("description", rs.getString("description"));
+                activity.put("source_column", rs.getString("source_column"));
+                activity.put("target_column", rs.getString("target_column"));
+                activity.put("created_at", rs.getTimestamp("created_at"));
+                activity.put("user_name", rs.getString("user_name"));
                 activities.add(activity);
             }
         } catch (SQLException e) {
@@ -773,5 +776,26 @@ public class DatabaseManager {
             }
         }
         return 0;
+    }
+    
+    // Obter nome da tarefa pelo ID
+    public static String getTaskName(int taskId) {
+        String sql = "SELECT name FROM tasks WHERE id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, taskId);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("name");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erro ao obter nome da tarefa: " + e.getMessage());
+        }
+        
+        return null;
     }
 }

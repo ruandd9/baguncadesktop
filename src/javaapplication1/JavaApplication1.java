@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import javax.swing.border.TitledBorder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
 
@@ -48,7 +51,9 @@ class KanbanBoard extends JFrame {
     private JPanel todoPanel, doingPanel, donePanel;
     private ArrayList<JPanel> todoTasks, doingTasks, doneTasks;
     private User currentUser;
-    private JTextArea activityLog;
+    private DefaultListModel<ActivityItem> activityModel;
+    private JList<ActivityItem> activityList;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     
     public KanbanBoard(User user) {
         this.currentUser = user;
@@ -98,13 +103,7 @@ class KanbanBoard extends JFrame {
         columnsPanel.add(donePanel);
         
         // Botão Adicionar Tarefa estilizado
-        JButton addButton = new JButton("+ Nova Tarefa");
-        addButton.setBackground(buttonColor);
-        addButton.setForeground(textColor);
-        addButton.setFocusPainted(false);
-        addButton.setBorderPainted(false);
-        addButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JButton addButton = createTaskButton("TODO");
         addButton.addActionListener(e -> showAddTaskDialog());
         
         // Botão Gerenciar Equipes
@@ -118,12 +117,12 @@ class KanbanBoard extends JFrame {
         teamsButton.addActionListener(e -> showTeamsDialog());
         
         // Botão de Notificações
-        JButton notificationsButton = new JButton("🔔");
+        JButton notificationsButton = new JButton("Notificações");
         notificationsButton.setBackground(buttonColor);
         notificationsButton.setForeground(textColor);
         notificationsButton.setFocusPainted(false);
         notificationsButton.setBorderPainted(false);
-        notificationsButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        notificationsButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
         notificationsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         notificationsButton.addActionListener(e -> showNotificationsDialog());
         
@@ -131,10 +130,10 @@ class KanbanBoard extends JFrame {
         Timer notificationTimer = new Timer(5000, e -> {
             int unreadCount = DatabaseManager.getUnreadNotificationsCount(currentUser.getId());
             if (unreadCount > 0) {
-                notificationsButton.setText("🔔 (" + unreadCount + ")");
+                notificationsButton.setText("Notificações (" + unreadCount + ")");
                 notificationsButton.setBackground(buttonColor.brighter());
             } else {
-                notificationsButton.setText("🔔");
+                notificationsButton.setText("Notificações");
                 notificationsButton.setBackground(buttonColor);
             }
         });
@@ -181,16 +180,14 @@ class KanbanBoard extends JFrame {
         activityTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         activityPanel.add(activityTitle, BorderLayout.NORTH);
         
-        activityLog = new JTextArea();
-        activityLog.setBackground(columnColor);
-        activityLog.setForeground(textColor);
-        activityLog.setEditable(false);
-        activityLog.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        activityLog.setLineWrap(true);
-        activityLog.setWrapStyleWord(true);
-        activityLog.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        // Inicializar modelo e lista de atividades
+        activityModel = new DefaultListModel<>();
+        activityList = new JList<>(activityModel);
+        activityList.setCellRenderer(new ActivityListCellRenderer());
+        activityList.setBackground(columnColor);
+        activityList.setForeground(textColor);
         
-        JScrollPane activityScroll = new JScrollPane(activityLog);
+        JScrollPane activityScroll = new JScrollPane(activityList);
         activityScroll.setPreferredSize(new Dimension(300, 0));
         activityScroll.setBorder(BorderFactory.createLineBorder(backgroundColor.darker()));
         activityScroll.getViewport().setBackground(columnColor);
@@ -228,85 +225,99 @@ class KanbanBoard extends JFrame {
         add(mainPanel);
     }
     
+    private JButton createTaskButton(String column) {
+        JButton button = new JButton("+ Nova Tarefa");
+        button.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        button.setForeground(new Color(255, 255, 255));
+        button.setBackground(new Color(54, 57, 63));
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+    
     private JPanel createColumn(String title, Color bgColor, Color textColor) {
         JPanel column = new JPanel(new BorderLayout());
         column.setBackground(bgColor);
-        column.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(bgColor.darker()),
-            title, TitledBorder.LEFT, TitledBorder.TOP,
-            new Font("Segoe UI", Font.BOLD, 14), textColor));
+        column.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // Painel para as tarefas
+        // Título da coluna
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setForeground(textColor);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        column.add(titleLabel, BorderLayout.NORTH);
+        
+        // Painel para as tarefas com BoxLayout vertical
         JPanel tasksPanel = new JPanel();
         tasksPanel.setLayout(new BoxLayout(tasksPanel, BoxLayout.Y_AXIS));
         tasksPanel.setBackground(bgColor);
+        
+        // Adicionar um painel "empurrador" que ocupa o espaço extra
+        tasksPanel.add(Box.createVerticalGlue());
         
         JScrollPane scrollPane = new JScrollPane(tasksPanel);
         scrollPane.setBackground(bgColor);
         scrollPane.getViewport().setBackground(bgColor);
         scrollPane.setBorder(null);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         
         column.add(scrollPane, BorderLayout.CENTER);
         return column;
     }
     
-    private void showAddTaskDialog() {
-        TaskDialog dialog = new TaskDialog(
-            this,
-            "Nova Tarefa",
-            "",
-            Task.Priority.MEDIA,
-            null
-        );
-        dialog.setVisible(true);
+    private void refreshTasks() {
+        // Obter os painéis internos dos JScrollPane
+        JPanel todoTasksPanel = (JPanel)((JScrollPane)todoPanel.getComponent(1)).getViewport().getView();
+        JPanel doingTasksPanel = (JPanel)((JScrollPane)doingPanel.getComponent(1)).getViewport().getView();
+        JPanel doneTasksPanel = (JPanel)((JScrollPane)donePanel.getComponent(1)).getViewport().getView();
         
-        if (dialog.isConfirmed()) {
-            addTask(
-                dialog.getTaskName(),
-                "TODO",
-                dialog.getTaskPriority(),
-                dialog.getTaskDueDate()
+        // Limpar todos os painéis
+        todoTasksPanel.removeAll();
+        doingTasksPanel.removeAll();
+        doneTasksPanel.removeAll();
+        
+        todoTasks.clear();
+        doingTasks.clear();
+        doneTasks.clear();
+        
+        // Recarregar tarefas do banco
+        ArrayList<Task> tasks = DatabaseManager.loadTasks();
+        for (Task task : tasks) {
+            JPanel taskPanel = createTaskPanel(
+                task.getId(),
+                task.getName(),
+                task.getPriority(),
+                task.getDueDate()
             );
-        }
-    }
-    
-    private void addTask(String taskName, String column, Task.Priority priority, Date dueDate) {
-        // Adicionar a tarefa ao banco de dados
-        int taskId = DatabaseManager.addTask(taskName, column, currentUser.getId(), priority, dueDate);
-        if (taskId == -1) {
-            JOptionPane.showMessageDialog(this,
-                "Erro ao adicionar tarefa ao banco de dados.",
-                "Erro",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        // Criar um painel para a tarefa com tamanho fixo
-        JPanel taskPanel = createTaskPanel(taskId, taskName, priority, dueDate);
-        
-        // Adicionar à coluna apropriada
-        JPanel targetPanel = null;
-        ArrayList<JPanel> targetList = null;
-        
-        if (column.equals("TODO")) {
-            targetPanel = (JPanel)((JScrollPane)todoPanel.getComponent(0)).getViewport().getView();
-            targetList = todoTasks;
-        } else if (column.equals("DOING")) {
-            targetPanel = (JPanel)((JScrollPane)doingPanel.getComponent(0)).getViewport().getView();
-            targetList = doingTasks;
-        } else {
-            targetPanel = (JPanel)((JScrollPane)donePanel.getComponent(0)).getViewport().getView();
-            targetList = doneTasks;
-        }
-        
-        if (targetPanel != null && targetList != null) {
-            targetList.add(taskPanel);
-            targetPanel.add(taskPanel);
             
-            // Atualizar a interface
-            targetPanel.revalidate();
-            targetPanel.repaint();
+            switch (task.getColumn()) {
+                case "TODO":
+                    todoTasks.add(taskPanel);
+                    todoTasksPanel.add(taskPanel);
+                    break;
+                case "DOING":
+                    doingTasks.add(taskPanel);
+                    doingTasksPanel.add(taskPanel);
+                    break;
+                case "DONE":
+                    doneTasks.add(taskPanel);
+                    doneTasksPanel.add(taskPanel);
+                    break;
+            }
         }
+        
+        // Atualizar interface
+        todoTasksPanel.revalidate();
+        todoTasksPanel.repaint();
+        doingTasksPanel.revalidate();
+        doingTasksPanel.repaint();
+        doneTasksPanel.revalidate();
+        doneTasksPanel.repaint();
+        
+        // Atualizar log de atividades
+        updateActivityLog();
     }
     
     private JPanel createTaskPanel(int taskId, String taskName, Task.Priority priority, Date dueDate) {
@@ -358,28 +369,8 @@ class KanbanBoard extends JFrame {
         JPanel checklistPanel = new JPanel(new BorderLayout(2, 0));
         checklistPanel.setBackground(new Color(47, 49, 54));
         
-        JLabel checklistIcon = new JLabel("\u2611"); // Ícone de checklist (Unicode)
-        checklistIcon.setForeground(new Color(88, 101, 242));
-        checklistIcon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        checklistIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        checklistIcon.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON1) { // Clique esquerdo
-                    showChecklistDialog(taskId, taskName);
-                }
-            }
-            
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                checklistIcon.setForeground(new Color(88, 101, 242).darker());
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                checklistIcon.setForeground(new Color(88, 101, 242));
-            }
-        });
+        JButton checklistButton = createChecklistButton(taskId);
+        checklistPanel.add(checklistButton, BorderLayout.CENTER);
         
         JProgressBar progressBar = new JProgressBar(0, 100);
         progressBar.setPreferredSize(new Dimension(40, 8));
@@ -396,8 +387,7 @@ class KanbanBoard extends JFrame {
             System.err.println("Erro ao carregar progresso da checklist: " + e.getMessage());
         }
         
-        checklistPanel.add(checklistIcon, BorderLayout.WEST);
-        checklistPanel.add(progressBar, BorderLayout.CENTER);
+        checklistPanel.add(progressBar, BorderLayout.EAST);
         iconsPanel.add(checklistPanel);
         
         bottomPanel.add(iconsPanel, BorderLayout.EAST);
@@ -419,6 +409,19 @@ class KanbanBoard extends JFrame {
         return taskPanel;
     }
     
+    private JButton createChecklistButton(int taskId) {
+        JButton button = new JButton("Lista");
+        button.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        button.setForeground(new Color(88, 101, 242)); // Azul Discord
+        button.setBackground(null);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.addActionListener(e -> showChecklistDialog(taskId));
+        return button;
+    }
+    
     private Color getPriorityColor(Task.Priority priority) {
         switch (priority) {
             case ALTA:
@@ -431,10 +434,19 @@ class KanbanBoard extends JFrame {
         return Color.WHITE;
     }
     
-    private void showChecklistDialog(int taskId, String taskName) {
-        ChecklistDialog dialog = new ChecklistDialog(this, taskId, taskName);
-        dialog.setVisible(true);
-        refreshTasks(); // Atualiza o progresso após fechar o diálogo
+    private void showChecklistDialog(int taskId) {
+        // Obter o nome da tarefa do banco de dados
+        String taskName = DatabaseManager.getTaskName(taskId);
+        if (taskName != null) {
+            ChecklistDialog dialog = new ChecklistDialog(this, taskId, taskName);
+            dialog.setVisible(true);
+            refreshTasks(); // Atualiza o progresso após fechar o diálogo
+        } else {
+            JOptionPane.showMessageDialog(this,
+                "Erro ao carregar os dados da tarefa",
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private void showTaskContextMenu(MouseEvent e, JPanel taskPanel) {
@@ -560,85 +572,43 @@ class KanbanBoard extends JFrame {
         }
     }
     
-    private void refreshTasks() {
-        // Obter os painéis internos dos JScrollPane
-        JPanel todoTasksPanel = (JPanel)((JScrollPane)todoPanel.getComponent(0)).getViewport().getView();
-        JPanel doingTasksPanel = (JPanel)((JScrollPane)doingPanel.getComponent(0)).getViewport().getView();
-        JPanel doneTasksPanel = (JPanel)((JScrollPane)donePanel.getComponent(0)).getViewport().getView();
-        
-        // Limpar todos os painéis
-        todoTasksPanel.removeAll();
-        doingTasksPanel.removeAll();
-        doneTasksPanel.removeAll();
-        
-        todoTasks.clear();
-        doingTasks.clear();
-        doneTasks.clear();
-        
-        // Recarregar tarefas do banco
-        ArrayList<Task> tasks = DatabaseManager.loadTasks();
-        for (Task task : tasks) {
-            JPanel taskPanel = createTaskPanel(
-                task.getId(),
-                task.getName(),
-                task.getPriority(),
-                task.getDueDate()
-            );
-            
-            switch (task.getColumn()) {
-                case "TODO":
-                    todoTasks.add(taskPanel);
-                    todoTasksPanel.add(taskPanel);
-                    break;
-                case "DOING":
-                    doingTasks.add(taskPanel);
-                    doingTasksPanel.add(taskPanel);
-                    break;
-                case "DONE":
-                    doneTasks.add(taskPanel);
-                    doneTasksPanel.add(taskPanel);
-                    break;
-            }
-        }
-        
-        // Atualizar interface
-        todoTasksPanel.revalidate();
-        todoTasksPanel.repaint();
-        doingTasksPanel.revalidate();
-        doingTasksPanel.repaint();
-        doneTasksPanel.revalidate();
-        doneTasksPanel.repaint();
-        
-        // Atualizar log de atividades
-        updateActivityLog();
-    }
-    
     private void updateActivityLog() {
-        ArrayList<String> activities = DatabaseManager.getRecentActivities();
-        StringBuilder sb = new StringBuilder();
+        ArrayList<Map<String, Object>> activities = DatabaseManager.getRecentActivities();
+        activityModel.clear();
         
         if (activities.isEmpty()) {
-            sb.append("Nenhuma atividade registrada ainda.\n");
-            sb.append("As atividades aparecerão aqui quando você:\n");
-            sb.append("- Criar uma nova tarefa\n");
-            sb.append("- Mover uma tarefa\n");
-            sb.append("- Editar uma tarefa\n");
-            sb.append("- Excluir uma tarefa");
-        } else {
-            for (String activity : activities) {
-                sb.append(activity).append("\n\n");
-            }
+            Map<String, Object> defaultActivity = new HashMap<>();
+            defaultActivity.put("action", "INFO");
+            defaultActivity.put("description", "Nenhuma atividade registrada ainda.\n" +
+                "As atividades aparecerão aqui quando você:\n" +
+                "- Criar uma nova tarefa\n" +
+                "- Mover uma tarefa\n" +
+                "- Editar uma tarefa\n" +
+                "- Excluir uma tarefa");
+            defaultActivity.put("source_column", "");
+            defaultActivity.put("target_column", "");
+            defaultActivity.put("created_at", new Date());
+            activities.add(defaultActivity);
         }
         
-        activityLog.setText(sb.toString());
-        activityLog.setCaretPosition(0); // Rola para o topo
+        for (Map<String, Object> activity : activities) {
+            activityModel.addElement(new ActivityItem(
+                (String) activity.get("action"),
+                (String) activity.get("description"),
+                (String) activity.get("source_column"),
+                (String) activity.get("target_column"),
+                (Date) activity.get("created_at")
+            ));
+        }
+        
+        activityList.ensureIndexIsVisible(0); // Rola para o topo
     }
     
     private String getCurrentColumn(JPanel taskPanel) {
         // Obter os painéis internos dos JScrollPane
-        JPanel todoTasksPanel = (JPanel)((JScrollPane)todoPanel.getComponent(0)).getViewport().getView();
-        JPanel doingTasksPanel = (JPanel)((JScrollPane)doingPanel.getComponent(0)).getViewport().getView();
-        JPanel doneTasksPanel = (JPanel)((JScrollPane)donePanel.getComponent(0)).getViewport().getView();
+        JPanel todoTasksPanel = (JPanel)((JScrollPane)todoPanel.getComponent(1)).getViewport().getView();
+        JPanel doingTasksPanel = (JPanel)((JScrollPane)doingPanel.getComponent(1)).getViewport().getView();
+        JPanel doneTasksPanel = (JPanel)((JScrollPane)donePanel.getComponent(1)).getViewport().getView();
         
         // Verificar em qual painel a tarefa está
         if (todoTasksPanel.isAncestorOf(taskPanel)) {
@@ -865,6 +835,116 @@ class KanbanBoard extends JFrame {
                 "Erro ao atualizar prioridade: " + e.getMessage(),
                 "Erro",
                 JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void showAddTaskDialog() {
+        TaskDialog dialog = new TaskDialog(
+            this,
+            "Nova Tarefa",
+            "",
+            Task.Priority.MEDIA,
+            null
+        );
+        dialog.setVisible(true);
+        
+        if (dialog.isConfirmed()) {
+            addTask(dialog.getTaskName(), dialog.getColumn(), dialog.getTaskPriority(), dialog.getTaskDueDate());
+        }
+    }
+    
+    private void addTask(String taskName, String status, Task.Priority priority, Date dueDate) {
+        int taskId = DatabaseManager.addTask(taskName, status, currentUser.getId(), priority, dueDate);
+        if (taskId == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Erro ao adicionar tarefa ao banco de dados.",
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        refreshTasks();
+    }
+    
+    // Classe interna para representar um item de atividade
+    private class ActivityItem {
+        private String action;
+        private String description;
+        private String sourceColumn;
+        private String targetColumn;
+        private Date createdAt;
+        
+        public ActivityItem(String action, String description, String sourceColumn, String targetColumn, Date createdAt) {
+            this.action = action;
+            this.description = description;
+            this.sourceColumn = sourceColumn;
+            this.targetColumn = targetColumn;
+            this.createdAt = createdAt;
+        }
+        
+        public String getAction() { return action; }
+        public String getDescription() { return description; }
+        public String getSourceColumn() { return sourceColumn; }
+        public String getTargetColumn() { return targetColumn; }
+        public Date getCreatedAt() { return createdAt; }
+    }
+    
+    // Renderer personalizado para a lista de atividades
+    private class ActivityListCellRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(
+            JList<?> list,
+            Object value,
+            int index,
+            boolean isSelected,
+            boolean cellHasFocus
+        ) {
+            ActivityItem activity = (ActivityItem) value;
+            
+            JPanel panel = new JPanel(new BorderLayout(5, 5));
+            panel.setBackground(isSelected ? new Color(64, 68, 75).darker() : new Color(64, 68, 75));
+            panel.setBorder(new EmptyBorder(8, 8, 8, 8));
+            
+            // Painel para o conteúdo da atividade
+            JPanel contentPanel = new JPanel(new GridLayout(2, 1, 2, 2));
+            contentPanel.setBackground(panel.getBackground());
+            
+            // Descrição da atividade
+            JLabel descriptionLabel = new JLabel(activity.getDescription());
+            descriptionLabel.setForeground(Color.WHITE);
+            descriptionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            
+            // Data
+            JLabel dateLabel = new JLabel(dateFormat.format(activity.getCreatedAt()));
+            dateLabel.setForeground(new Color(185, 187, 190));
+            dateLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+            
+            contentPanel.add(descriptionLabel);
+            contentPanel.add(dateLabel);
+            
+            panel.add(contentPanel, BorderLayout.CENTER);
+            
+            // Indicador colorido baseado na ação
+            Color actionColor;
+            switch (activity.getAction()) {
+                case "CREATE":
+                    actionColor = new Color(87, 242, 135); // Verde
+                    break;
+                case "MOVE":
+                    actionColor = new Color(88, 101, 242); // Azul Discord
+                    break;
+                case "DELETE":
+                    actionColor = new Color(240, 71, 71); // Vermelho
+                    break;
+                default:
+                    actionColor = new Color(255, 184, 108); // Laranja
+            }
+            
+            JPanel actionIndicator = new JPanel();
+            actionIndicator.setPreferredSize(new Dimension(4, 0));
+            actionIndicator.setBackground(actionColor);
+            panel.add(actionIndicator, BorderLayout.WEST);
+            
+            return panel;
         }
     }
 }
