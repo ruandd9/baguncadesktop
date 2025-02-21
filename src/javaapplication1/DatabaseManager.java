@@ -12,15 +12,15 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 
 public class DatabaseManager {
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/kanban_db?useSSL=false&allowPublicKeyRetrieval=true";
+    private static final String DB_URL = "jdbc:mysql://localhost:3307/kanban_db?useSSL=false&allowPublicKeyRetrieval=true";
     private static final String USER = "root";
-    private static final String PASS = "";
+    private static final String PASS = "senac";
     
     // Testar conexão com o banco
     public static boolean testConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
+            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
                 return true;
             }
         } catch (ClassNotFoundException e) {
@@ -77,7 +77,7 @@ public class DatabaseManager {
             }
             
             // Executar o script SQL
-            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
+            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/?useSSL=false&allowPublicKeyRetrieval=true", USER, PASS)) {
                 // Dividir o script em comandos individuais
                 String[] commands = sqlScript.toString().split(";");
                 

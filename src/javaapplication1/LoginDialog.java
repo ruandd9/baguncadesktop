@@ -24,6 +24,7 @@ public class LoginDialog extends JDialog {
     public LoginDialog(Frame owner) {
         super(owner, "Login", true);
         setupUI();
+        setLocationRelativeTo(null);
     }
     
     private void setupUI() {
@@ -54,13 +55,19 @@ public class LoginDialog extends JDialog {
 
         // Logo placeholder
         JLabel logoLabel = new JLabel();
-        logoLabel.setPreferredSize(new Dimension(150, 150));
-        logoLabel.setMaximumSize(new Dimension(150, 150));
+        logoLabel.setPreferredSize(new Dimension(65, 65));
+        logoLabel.setMaximumSize(new Dimension(65, 65));
         logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        // Comentado até ter a imagem real
-        // ImageIcon logo = new ImageIcon("path/to/logo.png");
-        // Image scaledImage = logo.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
-        // logoLabel.setIcon(new ImageIcon(scaledImage));
+
+        // Carregar a imagem
+        ImageIcon logo = new ImageIcon(getClass().getResource("/img/logobg.png"));
+        if (logo.getImageLoadStatus() == MediaTracker.COMPLETE) {
+            Image scaledImage = logo.getImage().getScaledInstance(65, 65, Image.SCALE_SMOOTH);
+            logoLabel.setIcon(new ImageIcon(scaledImage));
+        } else {
+            System.err.println("Erro ao carregar a imagem.");
+        }
+
         centerContainer.add(logoLabel);
         centerContainer.add(Box.createVerticalStrut(20));
 
