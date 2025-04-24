@@ -109,8 +109,6 @@ Abra o projeto no NetBeans ou compile diretamente com o Java.
 📅 JCalendar: Seleção de datas (JCalendar).
 
 
-📂 Estrutura do Projeto
-
 src/javaapplication1/
 ├── JavaApplication1.java       # Classe principal e interface Kanban
 ├── DatabaseManager.java        # Gerenciamento do banco de dados
