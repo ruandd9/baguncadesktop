@@ -6,7 +6,6 @@
 
 <p align="center">
   <a href="https://shields.io"><img src="https://img.shields.io/badge/Status-Concluído-green?style=flat-square" alt="Status: Concluído"></a>
-  <a href="https://shields.io"><img src="https://img.shields.io/badge/Licença-MIT-blue?style=flat-square" alt="Licença: MIT"></a>
   <a href="https://shields.io"><img src="https://img.shields.io/badge/Projeto-TodoBagunça-orange?style=for-the-badge" alt="Projeto TodoBagunça"></a>
 </p>
 
@@ -26,11 +25,11 @@ O **TodoBagunça** é uma aplicação desktop de quadro Kanban desenvolvida por 
 
 | 🧑‍💻 Membro | Papel |
 |-------------|-------|
-| **[Nome do Membro 1]** | Desenvolvedor |
-| **[Nome do Membro 2]** | Desenvolvedor |
-| **[Nome do Membro 3]** | Desenvolvedor |
-| **[Nome do Membro 4]** | Desenvolvedor |
-| **[Nome do Membro 5]** | Desenvolvedor |
+| **[Yan Basilio]** | Desenvolvedor |
+| **[Ruan Lobo]** | Desenvolvedor |
+| **[Douglas Oliveira]** | Desenvolvedor |
+| **[Rafael]** | Desenvolvedor |
+| **[Talisson]** | Desenvolvedor |
 
 > **Nota**: Substitua os placeholders **[Nome do Membro X]** pelos nomes reais dos membros da equipe.
 
@@ -74,8 +73,8 @@ Para executar o **TodoBagunça**, você precisará de:
 
 1. **Clone o repositório**:
    ```bash
-   git clone [URL_DO_SEU_REPOSITORIO]
- herni
+   git clone https://github.com/ruandd9/baguncadesktop.git
+ 
 2. **Configure o banco de dados**:
    - Inicie o **MySQL Server** (ex.: via XAMPP).
    - Execute o script SQL localizado em `src/database/kanban_db.sql`.
@@ -148,8 +147,8 @@ Agradecemos ao SENAC e aos professores da Unidade Curricular de Desenvolvimento 
 
 Para dúvidas, sugestões ou feedback, entre em contato:
 
-📩 Email: seu_email@example.com
-🌐 Repositório: URL_DO_SEU_REPOSITORIO
+📩 Email: ruanoliveiralobo@gmail.com
+🌐 Repositório: https://github.com/ruandd9/baguncadesktop
 
 
 ⭐ Obrigado por conhecer o TodoBagunça! ⭐
