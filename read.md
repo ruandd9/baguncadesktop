@@ -128,11 +128,6 @@ src/
 📸 Prévia da Aplicação
 
 
-  
-
-
-
-Nota: Substitua [URL_DA_IMAGEM_AQUI] pela URL de uma captura de tela da aplicação.
 
 
 🙏 Agradecimentos
