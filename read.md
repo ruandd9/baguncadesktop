@@ -75,57 +75,55 @@ Para executar o **TodoBagunça**, você precisará de:
 1. **Clone o repositório**:
    ```bash
    git clone [URL_DO_SEU_REPOSITORIO]
+ herni
+2. **Configure o banco de dados**:
+   - Inicie o **MySQL Server** (ex.: via XAMPP).
+   - Execute o script SQL localizado em `src/database/kanban_db.sql`.
+3. **Credenciais padrão**:
+   - **Email**: `admin@example.com`
+   - **Senha**: `admin123`
+4. **Execute a aplicação**:
+   - Abra o projeto no NetBeans ou compile diretamente com o Java.
 
+---
 
-Configure o banco de dados:
-Inicie o MySQL Server (ex.: via XAMPP).
-Execute o script SQL localizado em src/database/kanban_db.sql.
+<h2 align="center">💻 Tecnologias Utilizadas</h2>
 
+<p align="center">
+  <a href="https://shields.io"><img src="https://img.shields.io/badge/Java-007396?style=flat-square&logo=java&logoColor=white" alt="Java"></a>
+  <a href="https://shields.io"><img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL"></a>
+  <a href="https://shields.io"><img src="https://img.shields.io/badge/JDBC-000000?style=flat-square&logo=java&logoColor=white" alt="JDBC"></a>
+  <a href="https://shields.io"><img src="https://img.shields.io/badge/JCalendar-FFD700?style=flat-square&logo=java&logoColor=black" alt="JCalendar"></a>
+</p>
 
-Credenciais padrão:
-Email: admin@example.com
-Senha: admin123
+- ☕ **Java Swing**: Interface gráfica moderna.
+- 🗄️ **MySQL**: Banco de dados relacional para armazenamento.
+- 🔗 **JDBC**: Conexão com o banco de dados ([MySQL Connector](https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar)).
+- 📅 **JCalendar**: Seleção de datas ([JCalendar](https://repo1.maven.org/maven2/com/toedter/jcalendar/1.4/jcalendar-1.4.jar)).
 
+---
 
-Execute a aplicação:
-Abra o projeto no NetBeans ou compile diretamente com o Java.
+<h2 align="center">📂 Estrutura do Projeto</h2>
 
-
-
-
-💻 Tecnologias Utilizadas
-
-
-  
-  
-  
-  
-
-
-
-☕ Java Swing: Interface gráfica moderna.
-🗄️ MySQL: Banco de dados relacional para armazenamento.
-🔗 JDBC: Conexão com o banco de dados (MySQL Connector).
-📅 JCalendar: Seleção de datas (JCalendar).
-
-
-src/javaapplication1/
-├── JavaApplication1.java       # Classe principal e interface Kanban
-├── DatabaseManager.java        # Gerenciamento do banco de dados
-├── LoginDialog.java            # Tela de login
-├── RegisterDialog.java         # Tela de registro de usuário
-├── Task.java                   # Modelo de tarefa
-├── User.java                   # Modelo de usuário
-├── Team.java                   # Modelo de equipe
-├── TeamDialog.java             # Tela de gerenciamento de equipe
-├── TeamsListDialog.java        # Lista de equipes disponíveis
-├── TeamNotification.java       # Modelo de notificação de equipe
-├── NotificationsDialog.java    # Tela de notificações
-├── ChecklistDialog.java        # Tela de gerenciamento de checklist
-├── ChecklistItem.java          # Modelo de item de checklist
-├── TaskDialog.java             # Tela de criação/edição de tarefa
-src/database/
-├── kanban_db.sql               # Script de criação do banco de dados
+```plaintext
+src/
+  └── javaapplication1/
+      ├── JavaApplication1.java      # Classe principal e interface Kanban
+      ├── DatabaseManager.java       # Gerenciamento do banco de dados
+      ├── LoginDialog.java           # Tela de login
+      ├── RegisterDialog.java        # Tela de registro de usuário
+      ├── Task.java                  # Modelo de tarefa
+      ├── User.java                  # Modelo de usuário
+      ├── Team.java                  # Modelo de equipe
+      ├── TeamDialog.java            # Tela de gerenciamento de equipe
+      ├── TeamsListDialog.java       # Lista de equipes disponíveis
+      ├── TeamNotification.java      # Modelo de notificação de equipe
+      ├── NotificationsDialog.java   # Tela de notificações
+      ├── ChecklistDialog.java       # Tela de gerenciamento de checklist
+      ├── ChecklistItem.java         # Modelo de item de checklist
+      ├── TaskDialog.java            # Tela de criação/edição de tarefa
+  └── database/
+      ├── kanban_db.sql              # Script de criação do banco de dados
 
 
 📸 Prévia da Aplicação
