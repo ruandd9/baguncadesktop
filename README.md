@@ -31,7 +31,7 @@ Este projeto foi desenvolvido em equipe por 5 estudantes, combinando conceitos d
 
 1. Clone o repositório
 ```bash
-git clone [URL_DO_SEU_REPOSITORIO]
+git clone https://github.com/ruandd9/baguncadesktop
 ```
 
 2. Configure o banco de dados
