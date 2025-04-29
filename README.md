@@ -1,158 +1,150 @@
-<h1 align="center">🌟 TodoBagunça - Kanban Board 🌟</h1>
+```markdown
+# 🌟 TodoBagunça Desktop - Projeto Integrador SENAC-DF 🌟
 
-<p align="center">
-  <strong>Um aplicativo de quadro Kanban</strong> desenvolvido como projeto acadêmico durante o curso Técnico em Desenvolvimento de Sistemas no SENAC, na Unidade Curricular de Desenvolvimento Desktop com Java. 🚀
-</p>
+**Bem-vindo ao repositório do TodoBagunça**, uma aplicação desktop com quadro Kanban desenvolvida no SENAC-DF, como parte do Projeto Integrador da Unidade Curricular de Desenvolvimento Desktop com Java. 💻
 
-<p align="center">
-  <a href="https://shields.io"><img src="https://img.shields.io/badge/Status-Concluído-green?style=flat-square" alt="Status: Concluído"></a>
-  <a href="https://shields.io"><img src="https://img.shields.io/badge/Projeto-TodoBagunça-orange?style=for-the-badge" alt="Projeto TodoBagunça"></a>
-</p>
+![Status](https://img.shields.io/badge/Status-Concluído-green?style=flat-square)
+![Projeto](https://img.shields.io/badge/Projeto-TodoBagunça-orange?style=for-the-badge)
 
 ---
 
-<h2 align="center">📖 Sobre o Projeto</h2>
+## 📖 Descrição do Projeto
 
-<p align="center">
-  <img src="https://img.shields.io/badge/🔥-Organize_suas_Tarefas-red?style=for-the-badge" alt="Organize suas Tarefas">
-</p>
+O **TodoBagunça** é uma aplicação desktop de organização pessoal com foco em produtividade e colaboração em equipe. Inspirado em ferramentas como o Trello e no visual do Discord, o projeto tem como base metodologias ágeis (Scrum e Kanban) e foi construído em **Java Swing**, com integração ao **MySQL** via **JDBC**.
 
-O **TodoBagunça** é uma aplicação desktop de quadro Kanban desenvolvida por uma equipe de 5 estudantes do curso Técnico em Desenvolvimento de Sistemas no SENAC. Com uma interface moderna de tema escuro inspirada no Discord, a aplicação combina conceitos de desenvolvimento desktop, interface gráfica com **Java Swing**, e gerenciamento de banco de dados com **MySQL**. O projeto demonstra na prática os conhecimentos adquiridos na Unidade Curricular de Desenvolvimento Desktop com Java.
+Seu principal objetivo é auxiliar estudantes e profissionais no gerenciamento visual de tarefas em quadros, listas e checklists.
 
 ---
 
-<h2 align="center">👥 Equipe de Desenvolvimento</h2>
+## 🛠️ Funcionalidades
 
-| 🧑‍💻 Membro | Papel |
-|-------------|-------|
-| **[Yan Basilio]** | Desenvolvedor |
-| **[Ruan Lobo]** | Desenvolvedor |
-| **[Douglas Oliveira]** | Desenvolvedor |
-| **[Rafael]** | Desenvolvedor |
-| **[Talisson]** | Desenvolvedor |
+### ✅ Funcionalidades Implementadas
 
-> **Nota**: Substitua os placeholders **[Nome do Membro X]** pelos nomes reais dos membros da equipe.
-
----
-
-<h2 align="center">🛠️ Funcionalidades</h2>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/✅-Funcionalidades_Implementadas-blueviolet?style=for-the-badge" alt="Funcionalidades Implementadas">
-</p>
-
-| 🟢 Funcionalidade | Descrição |
-|-------------------|-----------|
-| 🎨 Interface Moderna | Tema escuro inspirado no Discord para uma experiência visual agradável. |
-| 🔐 Login e Registro | Sistema de autenticação com cadastro de usuários. |
-| ⏰ Registro em Tempo Real | Acompanhamento de atividades em tempo real. |
-| 📋 Gerenciamento de Tarefas | Crie, edite e organize tarefas em um quadro Kanban. |
-| 🗄️ Banco de Dados MySQL | Armazenamento seguro de dados com MySQL. |
-| 📍 Menu de Contexto | Gerencie tarefas diretamente com menus contextuais. |
-| 🔔 Notificações | Sistema de notificações para atualizações importantes. |
-| 👥 Gerenciamento de Equipes | Crie e gerencie equipes para colaboração. |
-| ✅ Checklists | Adicione checklists às tarefas para maior organização. |
+| Funcionalidade             | Descrição                                                                 |
+|---------------------------|---------------------------------------------------------------------------|
+| 🎨 Interface Moderna      | Tema escuro inspirado no Discord para uma melhor experiência visual.     |
+| 🔐 Login e Registro       | Sistema de autenticação com cadastro de usuários.                         |
+| ⏰ Atualização em Tempo Real | Visualização de atividades e tarefas dinamicamente.                  |
+| 📋 Gerenciamento de Tarefas | Crie, edite e mova tarefas entre colunas (Kanban).                   |
+| 🗄️ Banco de Dados MySQL   | Armazenamento persistente com MySQL.                                     |
+| 📍 Menu de Contexto       | Ações rápidas por clique direito nas tarefas.                            |
+| 🔔 Notificações           | Informações e alertas importantes para os usuários.                      |
+| 👥 Equipes                | Criação e gerenciamento de times colaborativos.                          |
+| ✅ Checklists             | Adição de subtarefas dentro de tarefas principais.                       |
 
 ---
 
-<h2 align="center">📋 Requisitos</h2>
+## 📋 Requisitos
 
 Para executar o **TodoBagunça**, você precisará de:
 
-- ☕ **Java JDK 8** ou superior
-- 🗄️ **MySQL Server** (recomendado usar XAMPP)
-- 🛠️ **NetBeans IDE** (opcional, para desenvolvimento)
+- ☕ Java JDK 8 ou superior  
+- 🗄️ MySQL Server (pode usar XAMPP)  
+- 🛠️ NetBeans IDE (opcional, para desenvolvimento)
 
 ---
 
-<h2 align="center">⚙️ Configuração</h2>
+## ⚙️ Como Executar
 
-<p align="center">
-  <img src="https://img.shields.io/badge/🚀-Configure_em_Minutos-brightgreen?style=for-the-badge" alt="Configure em Minutos">
-</p>
+### 🚀 Configure em Minutos
 
 1. **Clone o repositório**:
    ```bash
    git clone https://github.com/ruandd9/baguncadesktop.git
- 
+   ```
+
 2. **Configure o banco de dados**:
-   - Inicie o **MySQL Server** (ex.: via XAMPP).
-   - Execute o script SQL localizado em `src/database/kanban_db.sql`.
+   - Inicie o MySQL Server
+   - Execute o script `src/database/kanban_db.sql`
+
 3. **Credenciais padrão**:
-   - **Email**: `admin@example.com`
-   - **Senha**: `admin123`
+   - Email: `admin@example.com`
+   - Senha: `admin123`
+
 4. **Execute a aplicação**:
-   - Abra o projeto no NetBeans ou compile diretamente com o Java.
+   - Abra o projeto no NetBeans ou compile via terminal:
+     ```bash
+     javac -cp . JavaApplication1.java
+     java JavaApplication1
+     ```
 
 ---
 
-<h2 align="center">💻 Tecnologias Utilizadas</h2>
+## 💻 Tecnologias Utilizadas
 
-<p align="center">
-  <a href="https://shields.io"><img src="https://img.shields.io/badge/Java-007396?style=flat-square&logo=java&logoColor=white" alt="Java"></a>
-  <a href="https://shields.io"><img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL"></a>
-  <a href="https://shields.io"><img src="https://img.shields.io/badge/JDBC-000000?style=flat-square&logo=java&logoColor=white" alt="JDBC"></a>
-  <a href="https://shields.io"><img src="https://img.shields.io/badge/JCalendar-FFD700?style=flat-square&logo=java&logoColor=black" alt="JCalendar"></a>
-</p>
+![Java](https://img.shields.io/badge/Java-007396?style=flat-square&logo=java&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![JDBC](https://img.shields.io/badge/JDBC-000000?style=flat-square&logo=java&logoColor=white)
+![JCalendar](https://img.shields.io/badge/JCalendar-FFD700?style=flat-square&logo=java&logoColor=black)
 
-- ☕ **Java Swing**: Interface gráfica moderna.
-- 🗄️ **MySQL**: Banco de dados relacional para armazenamento.
-- 🔗 **JDBC**: Conexão com o banco de dados ([MySQL Connector](https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar)).
-- 📅 **JCalendar**: Seleção de datas ([JCalendar](https://repo1.maven.org/maven2/com/toedter/jcalendar/1.4/jcalendar-1.4.jar)).
+- Java Swing: Interface gráfica responsiva  
+- MySQL: Banco de dados relacional  
+- JDBC: Conexão Java ↔ Banco ([MySQL Connector](https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar))  
+- JCalendar: Componente de data ([JCalendar 1.4](https://repo1.maven.org/maven2/com/toedter/jcalendar/1.4/jcalendar-1.4.jar))
 
 ---
 
-<h2 align="center">📂 Estrutura do Projeto</h2>
+## 📂 Estrutura do Projeto
 
 ```plaintext
 src/
   └── javaapplication1/
-      ├── JavaApplication1.java      # Classe principal e interface Kanban
-      ├── DatabaseManager.java       # Gerenciamento do banco de dados
+      ├── JavaApplication1.java      # Classe principal
+      ├── DatabaseManager.java       # Conexão com o banco
       ├── LoginDialog.java           # Tela de login
-      ├── RegisterDialog.java        # Tela de registro de usuário
+      ├── RegisterDialog.java        # Tela de registro
       ├── Task.java                  # Modelo de tarefa
       ├── User.java                  # Modelo de usuário
       ├── Team.java                  # Modelo de equipe
-      ├── TeamDialog.java            # Tela de gerenciamento de equipe
-      ├── TeamsListDialog.java       # Lista de equipes disponíveis
-      ├── TeamNotification.java      # Modelo de notificação de equipe
+      ├── TeamDialog.java            # Gerenciamento de equipe
+      ├── TeamsListDialog.java       # Lista de equipes
+      ├── TeamNotification.java      # Notificações de equipe
       ├── NotificationsDialog.java   # Tela de notificações
-      ├── ChecklistDialog.java       # Tela de gerenciamento de checklist
-      ├── ChecklistItem.java         # Modelo de item de checklist
-      ├── TaskDialog.java            # Tela de criação/edição de tarefa
+      ├── ChecklistDialog.java       # Gerenciador de checklists
+      ├── ChecklistItem.java         # Item do checklist
+      ├── TaskDialog.java            # Criar/editar tarefas
   └── database/
-      ├── kanban_db.sql              # Script de criação do banco de dados
+      └── kanban_db.sql              # Script SQL do banco
+```
 
+---
 
-📸 Prévia da Aplicação
+## 📸 Prévia da Interface
 
+> Substitua o caminho abaixo por um arquivo de imagem real no repositório se quiser exibir a imagem
 
+```markdown
+![Interface TodoBagunça](preview-desktop.png)
+```
 
+---
 
-🙏 Agradecimentos
+## 👥 Contribuidores
 
+- [Yan Fellippe](https://github.com/YanFellippe)  
+- [Ruan Lobo](https://github.com/ruandd9)  
+- [Douglas Oliveira](https://github.com/douglasarj)  
+- Rafael  
+- [Talisson Leandro](https://github.com/talissonleandro)
 
-  
+---
 
+## 🙏 Agradecimentos
 
-Agradecemos ao SENAC e aos professores da Unidade Curricular de Desenvolvimento Desktop com Java pelo suporte, orientação e oportunidade de desenvolver este projeto prático.
+Agradecemos ao **SENAC-DF** e aos professores da Unidade Curricular de Desenvolvimento Desktop com Java pelo suporte, conhecimento compartilhado e oportunidade de realizar este projeto prático.
 
-📧 Contato
+---
 
-Para dúvidas, sugestões ou feedback, entre em contato:
+## 📧 Contato
 
-📩 Email: ruanoliveiralobo@gmail.com
-🌐 Repositório: https://github.com/ruandd9/baguncadesktop
+Tem dúvidas, sugestões ou feedback? Fale com a gente:
 
+- Email: [ruanoliveiralobo@gmail.com](mailto:ruanoliveiralobo@gmail.com)  
+- GitHub: [github.com/ruandd9/baguncadesktop](https://github.com/ruandd9/baguncadesktop)
 
-⭐ Obrigado por conhecer o TodoBagunça! ⭐
+---
 
+## ⭐ Obrigado por conhecer o TodoBagunça!
 
-  
-
-
-
-  Experimente o **TodoBagunça** e transforme a gestão de tarefas em uma experiência prática e colaborativa! 🎉
-
+Experimente o **TodoBagunça** e transforme a gestão de tarefas em algo visual, colaborativo e intuitivo! 🚀
 ```
