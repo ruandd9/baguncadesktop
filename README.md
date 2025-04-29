@@ -1,149 +1,90 @@
-# 🌟 TodoBagunça Desktop - Projeto Integrador SENAC-DF 🌟
+<h1 align="center">🌟 Bagunça Mobile - Projeto Integrador SENAC-DF 🌟</h1>
 
-**Bem-vindo ao repositório do TodoBagunça**, uma aplicação desktop com quadro Kanban desenvolvida no SENAC-DF, como parte do Projeto Integrador da Unidade Curricular de Desenvolvimento Desktop com Java. 💻
+<p align="center">
+  <strong>Bem-vindo ao repositório do Bagunça Mobile</strong>, uma versão Android do sistema Bagunça, desenvolvido como parte do Projeto Integrador (PI) do SENAC-DF. 📱 Esta aplicação mobile busca trazer a praticidade da metodologia Kanban diretamente para o seu dispositivo Android!
+</p>
 
-![Status](https://img.shields.io/badge/Status-Concluído-green?style=flat-square)
-![Projeto](https://img.shields.io/badge/Projeto-TodoBagunça-orange?style=for-the-badge)
-
----
-
-## 📖 Descrição do Projeto
-
-O **TodoBagunça** é uma aplicação desktop de organização pessoal com foco em produtividade e colaboração em equipe. Inspirado em ferramentas como o Trello e no visual do Discord, o projeto tem como base metodologias ágeis (Scrum e Kanban) e foi construído em **Java Swing**, com integração ao **MySQL** via **JDBC**.
-
-Seu principal objetivo é auxiliar estudantes e profissionais no gerenciamento visual de tarefas em quadros, listas e checklists.
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/Status-Em%20Desenvolvimento-blue?style=flat-square" alt="Status: Em Desenvolvimento"></a>
+</p>
 
 ---
 
-## 🛠️ Funcionalidades
+<h2 align="center">📖 Descrição do Projeto</h2>
 
-### ✅ Funcionalidades Implementadas
-
-| Funcionalidade             | Descrição                                                                 |
-|---------------------------|---------------------------------------------------------------------------|
-| 🎨 Interface Moderna      | Tema escuro inspirado no Discord para uma melhor experiência visual.     |
-| 🔐 Login e Registro       | Sistema de autenticação com cadastro de usuários.                         |
-| ⏰ Atualização em Tempo Real | Visualização de atividades e tarefas dinamicamente.                  |
-| 📋 Gerenciamento de Tarefas | Crie, edite e mova tarefas entre colunas (Kanban).                   |
-| 🗄️ Banco de Dados MySQL   | Armazenamento persistente com MySQL.                                     |
-| 📍 Menu de Contexto       | Ações rápidas por clique direito nas tarefas.                            |
-| 🔔 Notificações           | Informações e alertas importantes para os usuários.                      |
-| 👥 Equipes                | Criação e gerenciamento de times colaborativos.                          |
-| ✅ Checklists             | Adição de subtarefas dentro de tarefas principais.                       |
+O **Bagunça Mobile** é uma aplicação Android inspirada no Trello, com foco em gestão de tarefas através do sistema de quadros e cartões. Assim como na versão web, a proposta é oferecer uma interface simples e intuitiva para jovens universitários e profissionais que desejam organizar suas atividades de forma prática.
 
 ---
 
-## 📋 Requisitos
+<h2 align="center">🛠️ Funcionalidades</h2>
 
-Para executar o **TodoBagunça**, você precisará de:
-
-- ☕ Java JDK 8 ou superior  
-- 🗄️ MySQL Server (pode usar XAMPP)  
-- 🛠️ NetBeans IDE (opcional, para desenvolvimento)
-
----
-
-## ⚙️ Como Executar
-
-### 🚀 Configure em Minutos
-
-1. **Clone o repositório**:
-   ```bash
-   git clone https://github.com/ruandd9/baguncadesktop.git
-   ```
-
-2. **Configure o banco de dados**:
-   - Inicie o MySQL Server
-   - Execute o script `src/database/kanban_db.sql`
-
-3. **Credenciais padrão**:
-   - Email: `admin@example.com`
-   - Senha: `admin123`
-
-4. **Execute a aplicação**:
-   - Abra o projeto no NetBeans ou compile via terminal:
-     ```bash
-     javac -cp . JavaApplication1.java
-     java JavaApplication1
-     ```
+- ✅ Cadastro e login de usuários.
+- ✅ Criação de projetos pessoais.
+- ✅ Adição de quadros e cartões com suporte a **drag and drop**.
+- ✅ Atualizações em tempo real com banco de dados MySQL.
 
 ---
 
-## 💻 Tecnologias Utilizadas
+<h2 align="center">🎯 Público-Alvo</h2>
 
-![Java](https://img.shields.io/badge/Java-007396?style=flat-square&logo=java&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
-![JDBC](https://img.shields.io/badge/JDBC-000000?style=flat-square&logo=java&logoColor=white)
-![JCalendar](https://img.shields.io/badge/JCalendar-FFD700?style=flat-square&logo=java&logoColor=black)
+A aplicação é destinada especialmente a:
 
-- Java Swing: Interface gráfica responsiva  
-- MySQL: Banco de dados relacional  
-- JDBC: Conexão Java ↔ Banco ([MySQL Connector](https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar))  
-- JCalendar: Componente de data ([JCalendar 1.4](https://repo1.maven.org/maven2/com/toedter/jcalendar/1.4/jcalendar-1.4.jar))
+- 👥 Jovens universitários que trabalham em equipe.
+- 🧠 Pessoas que usam metodologias ágeis como Kanban e Scrum.
+- 📲 Usuários que preferem organizar suas tarefas no celular.
 
 ---
 
-## 📂 Estrutura do Projeto
+<h2 align="center">💻 Tecnologias Utilizadas</h2>
 
-```plaintext
-src/
-  └── javaapplication1/
-      ├── JavaApplication1.java      # Classe principal
-      ├── DatabaseManager.java       # Conexão com o banco
-      ├── LoginDialog.java           # Tela de login
-      ├── RegisterDialog.java        # Tela de registro
-      ├── Task.java                  # Modelo de tarefa
-      ├── User.java                  # Modelo de usuário
-      ├── Team.java                  # Modelo de equipe
-      ├── TeamDialog.java            # Gerenciamento de equipe
-      ├── TeamsListDialog.java       # Lista de equipes
-      ├── TeamNotification.java      # Notificações de equipe
-      ├── NotificationsDialog.java   # Tela de notificações
-      ├── ChecklistDialog.java       # Gerenciador de checklists
-      ├── ChecklistItem.java         # Item do checklist
-      ├── TaskDialog.java            # Criar/editar tarefas
-  └── database/
-      └── kanban_db.sql              # Script SQL do banco
-```
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/Java-ED8B00?style=flat-square&logo=java&logoColor=white" alt="Java"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Android_Studio-3DDC84?style=flat-square&logo=android-studio&logoColor=white" alt="Android Studio"></a>
+  <a href="#"><img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL"></a>
+</p>
+
+- 📱 **Java + Android Studio**: Desenvolvimento da aplicação mobile.
+- 🛢️ **MySQL**: Armazenamento dos dados dos usuários, projetos, quadros e cartões.
+- 🌐 **XAMPP/Apache**: Servidor local de testes e integração com o banco.
 
 ---
 
-## 📸 Prévia da Interface
+<h2 align="center">📸 Prévia da Interface</h2>
 
-> Substitua o caminho abaixo por um arquivo de imagem real no repositório se quiser exibir a imagem
-
-```markdown
-![Interface TodoBagunça](preview-desktop.png)
-```
+<p align="center">
+  <img src="preview-app.png" alt="Interface Bagunça Mobile" width="300">
+</p>
 
 ---
 
-## 👥 Contribuidores
+<h2 align="center">👥 Desenvolvedores</h2>
 
-- [Yan Fellippe](https://github.com/YanFellippe)  
-- [Ruan Lobo](https://github.com/ruandd9)  
-- [Douglas Oliveira](https://github.com/douglasarj)  
-- [Raphael](https://github.com/dragonkiri)  
-- [Talisson Leandro](https://github.com/talissonleandro)
-
----
-
-## 🙏 Agradecimentos
-
-Agradecemos ao **SENAC-DF** e aos professores da Unidade Curricular de Desenvolvimento Desktop com Java pelo suporte, conhecimento compartilhado e oportunidade de realizar este projeto prático.
+<ul>
+  <li><a href="https://github.com/YanFellippe"><strong>Yan Fellippe</strong></a> - Gerente do Projeto e Desenvolvedor Mobile</li>
+  <li><a href="https://github.com/ruandd9"><strong>Ruan Lobo</strong></a> - Subgerente e Desenvolvedor Backend</li>
+  <li><a href="https://github.com/talissonleandro"><strong>Talisson Leandro</strong></a> - Desenvolvedor Mobile e Designer</li>
+  <li><a href="https://github.com/douglasarj"><strong>Douglas Araújo</strong></a> - Desenvolvedor Mobile e Designer</li>
+  <li><a href="https://github.com/dragonkiri"><strong>Raphael Melo</strong></a> - Desenvolvedor Backend</li>
+</ul>
 
 ---
 
-## 📧 Contato
+<h2 align="center">📧 Contato</h2>
 
-Tem dúvidas, sugestões ou feedback? Fale com a gente:
+Tem sugestões ou feedback? Fale com a gente!
 
-- Email: [ruanoliveiralobo@gmail.com](mailto:ruanoliveiralobo@gmail.com)  
-- GitHub: [github.com/ruandd9/baguncadesktop](https://github.com/ruandd9/baguncadesktop)
+- 📩 **Email**: [ruanoliveiralobo@gmail.com](mailto:ruanoliveiralobo@gmail.com)
 
 ---
 
-## ⭐ Obrigado por conhecer o TodoBagunça!
+<h2 align="center">ℹ️ Sobre</h2>
 
-Experimente o **TodoBagunça** e transforme a gestão de tarefas em algo visual, colaborativo e intuitivo! 🚀
+O **Bagunça Mobile** é fruto do Projeto Integrador do SENAC-DF, que incentiva alunos a aplicarem seus conhecimentos técnicos em soluções reais e inovadoras. Esta versão mobile é uma extensão natural do sistema web, permitindo ainda mais flexibilidade no controle das tarefas diárias.
 
+---
+
+<h1 align="center">🚀 Obrigado por apoiar o Bagunça Mobile! 🚀</h1>
+
+<p align="center">
+  Organize sua vida com mobilidade e praticidade. 💼📲
+</p>
