@@ -1,4 +1,3 @@
-```markdown
 # 🌟 TodoBagunça Desktop - Projeto Integrador SENAC-DF 🌟
 
 **Bem-vindo ao repositório do TodoBagunça**, uma aplicação desktop com quadro Kanban desenvolvida no SENAC-DF, como parte do Projeto Integrador da Unidade Curricular de Desenvolvimento Desktop com Java. 💻
@@ -147,4 +146,4 @@ Tem dúvidas, sugestões ou feedback? Fale com a gente:
 ## ⭐ Obrigado por conhecer o TodoBagunça!
 
 Experimente o **TodoBagunça** e transforme a gestão de tarefas em algo visual, colaborativo e intuitivo! 🚀
-```
+
