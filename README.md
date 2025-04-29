@@ -124,7 +124,7 @@ src/
 - [Yan Fellippe](https://github.com/YanFellippe)  
 - [Ruan Lobo](https://github.com/ruandd9)  
 - [Douglas Oliveira](https://github.com/douglasarj)  
-- Rafael  
+- [Raphael](https://github.com/dragonkiri)  
 - [Talisson Leandro](https://github.com/talissonleandro)
 
 ---
