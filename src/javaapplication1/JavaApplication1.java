@@ -19,6 +19,9 @@ import java.util.Map;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 
 public class JavaApplication1 {
     public static void main(String[] args) {
@@ -352,6 +355,53 @@ class KanbanBoard extends JFrame {
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         
+        // Adiciona o drop target
+        tasksPanel.setTransferHandler(new TransferHandler() {
+            @Override
+            public boolean canImport(TransferSupport support) {
+                return support.isDataFlavorSupported(DataFlavor.stringFlavor);
+            }
+            
+            @Override
+            public boolean importData(TransferSupport support) {
+                if (!canImport(support)) {
+                    return false;
+                }
+                
+                try {
+                    String taskIdStr = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+                    int taskId = Integer.parseInt(taskIdStr);
+                    
+                    // Encontra o painel da tarefa
+                    JPanel taskPanel = findTaskPanelById(taskId);
+                    if (taskPanel != null) {
+                        // Determina a coluna de destino baseado no título
+                        String targetColumn;
+                        switch (title) {
+                            case "A Fazer":
+                                targetColumn = "TODO";
+                                break;
+                            case "Fazendo":
+                                targetColumn = "DOING";
+                                break;
+                            case "Feito":
+                                targetColumn = "DONE";
+                                break;
+                            default:
+                                return false;
+                        }
+                        
+                        // Move a tarefa para a nova coluna
+                        moveTask(taskPanel, targetColumn);
+                        return true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return false;
+            }
+        });
+        
         column.add(scrollPane, BorderLayout.CENTER);
         return column;
     }
@@ -472,7 +522,7 @@ class KanbanBoard extends JFrame {
             double progress = DatabaseManager.getChecklistProgress(taskId);
             progressBar.setValue((int) progress);
             progressBar.setToolTipText(String.format("%.0f%% completo", progress));
-        } catch ( SQLException e) {
+        } catch (SQLException e) {
             System.err.println("Erro ao carregar progresso da checklist: " + e.getMessage());
         }
         
@@ -491,11 +541,75 @@ class KanbanBoard extends JFrame {
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON3) { // Clique direito
                     showTaskContextMenu(e, taskPanel);
+                } else if (e.getButton() == MouseEvent.BUTTON1) { // Clique esquerdo
+                    taskPanel.setCursor(new Cursor(Cursor.MOVE_CURSOR));
+                }
+            }
+            
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                taskPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                
+                // Encontra o componente sob o cursor
+                Component component = SwingUtilities.getDeepestComponentAt(
+                    getContentPane(),
+                    e.getXOnScreen() - getLocationOnScreen().x,
+                    e.getYOnScreen() - getLocationOnScreen().y
+                );
+                
+                if (component != null) {
+                    // Procura o painel de tarefas mais próximo
+                    JPanel targetPanel = findTasksPanel(component);
+                    if (targetPanel != null) {
+                        // Encontra a coluna de destino
+                        String targetColumn = findColumnForPanel(targetPanel);
+                        if (targetColumn != null) {
+                            moveTask(taskPanel, targetColumn);
+                        }
+                    }
                 }
             }
         });
         
+        // Mouse motion listener para arrastar
+        taskPanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                // Atualiza a posição do cursor
+                taskPanel.setCursor(new Cursor(Cursor.MOVE_CURSOR));
+            }
+        });
+        
         return taskPanel;
+    }
+    
+    private JPanel findTasksPanel(Component component) {
+        Component current = component;
+        while (current != null) {
+            if (current instanceof JPanel) {
+                JPanel panel = (JPanel) current;
+                if (panel.getLayout() instanceof BoxLayout) {
+                    return panel;
+                }
+            }
+            current = current.getParent();
+        }
+        return null;
+    }
+    
+    private String findColumnForPanel(JPanel tasksPanel) {
+        if (tasksPanel == null) return null;
+        
+        // Verifica se o painel está em alguma das colunas
+        if (todoPanel.isAncestorOf(tasksPanel)) {
+            return "TODO";
+        } else if (doingPanel.isAncestorOf(tasksPanel)) {
+            return "DOING";
+        } else if (donePanel.isAncestorOf(tasksPanel)) {
+            return "DONE";
+        }
+        
+        return null;
     }
     
     private JButton createChecklistButton(int taskId) {
@@ -1037,3 +1151,4 @@ class KanbanBoard extends JFrame {
         }
     }
 }
+
