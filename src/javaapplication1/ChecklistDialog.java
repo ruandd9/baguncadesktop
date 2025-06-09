@@ -203,24 +203,42 @@ public class ChecklistDialog extends JDialog {
         contextMenu.setOpaque(true);
     }
 
-    private void setupListeners() {
-        itemsList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    editSelectedItem();
-                } else if (SwingUtilities.isRightMouseButton(e)) {
-                    int row = itemsList.locationToIndex(e.getPoint());
-                    if (row >= 0) {
-                        itemsList.setSelectedIndex(row);
-                        contextMenu.show(itemsList, e.getX(), e.getY());
-                    }
+  private void setupListeners() {
+    itemsList.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            // --- INÍCIO DA MODIFICAÇÃO ---
+
+            // Primeiro, verifica se foi um clique duplo para editar. Esta verificação deve vir antes.
+            if (e.getClickCount() == 2) {
+                editSelectedItem();
+
+            // Depois, verifica se foi um clique único com o botão esquerdo para marcar/desmarcar.
+            } else if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1) {
+                // Pega o índice do item na posição onde o mouse clicou.
+                int index = itemsList.locationToIndex(e.getPoint());
+                if (index != -1) {
+                    // Define o item clicado como o item selecionado na lista.
+                    itemsList.setSelectedIndex(index);
+                    // Chama o mesmo método que o menu de contexto usa para marcar/desmarcar.
+                    toggleSelectedItem();
+                }
+
+            // --- FIM DA MODIFICAÇÃO ---
+
+            // Por último, mantém a lógica para o clique com o botão direito (menu de contexto).
+            } else if (SwingUtilities.isRightMouseButton(e)) {
+                int row = itemsList.locationToIndex(e.getPoint());
+                if (row >= 0) {
+                    itemsList.setSelectedIndex(row);
+                    contextMenu.show(itemsList, e.getX(), e.getY());
                 }
             }
-        });
+        }
+    });
 
-        newItemField.addActionListener(e -> addNewItem());
-    }
+    newItemField.addActionListener(e -> addNewItem());
+}
 
     private void styleField(JTextField field) {
         field.setBackground(FIELD_COLOR);
