@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import javax.swing.border.*;
 import java.sql.*;
+import java.awt.event.MouseMotionAdapter;
 
 public class ChecklistDialog extends JDialog {
     // Cores do tema Discord
@@ -175,14 +176,16 @@ public class ChecklistDialog extends JDialog {
         JMenuItem deleteItem = new JMenuItem("Excluir");
 
         // Estilizar cada item
+  
         for (JMenuItem item : new JMenuItem[]{editItem, toggleItem, deleteItem}) {
-            item.setFont(MAIN_FONT);
-            item.setBackground(MENU_BACKGROUND);
-            item.setForeground(TEXT_COLOR);
-            item.setBorderPainted(false);
-            item.setOpaque(true);
+        item.setFont(MAIN_FONT);
+        item.setBackground(MENU_BACKGROUND);
+        item.setForeground(TEXT_COLOR);
+        item.setBorderPainted(false);
+        item.setOpaque(true);
+        item.setCursor(new Cursor(Cursor.HAND_CURSOR)); 
         }
-
+        
         // Configurar ações
         editItem.addActionListener(e -> editSelectedItem());
         toggleItem.addActionListener(e -> toggleSelectedItem());
@@ -203,41 +206,63 @@ public class ChecklistDialog extends JDialog {
         contextMenu.setOpaque(true);
     }
 
-  private void setupListeners() {
+private void setupListeners() {
+
     itemsList.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
-            // --- INÍCIO DA MODIFICAÇÃO ---
+            int index = itemsList.locationToIndex(e.getPoint());
+            if (index == -1) {
+                return;
+            }
+            itemsList.setSelectedIndex(index);
 
-            // Primeiro, verifica se foi um clique duplo para editar. Esta verificação deve vir antes.
-            if (e.getClickCount() == 2) {
-                editSelectedItem();
-
-            // Depois, verifica se foi um clique único com o botão esquerdo para marcar/desmarcar.
-            } else if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1) {
-                // Pega o índice do item na posição onde o mouse clicou.
-                int index = itemsList.locationToIndex(e.getPoint());
-                if (index != -1) {
-                    // Define o item clicado como o item selecionado na lista.
-                    itemsList.setSelectedIndex(index);
-                    // Chama o mesmo método que o menu de contexto usa para marcar/desmarcar.
-                    toggleSelectedItem();
-                }
-
-            // --- FIM DA MODIFICAÇÃO ---
-
-            // Por último, mantém a lógica para o clique com o botão direito (menu de contexto).
-            } else if (SwingUtilities.isRightMouseButton(e)) {
-                int row = itemsList.locationToIndex(e.getPoint());
-                if (row >= 0) {
-                    itemsList.setSelectedIndex(row);
-                    contextMenu.show(itemsList, e.getX(), e.getY());
-                }
+            // Ação para o clique direito (menu)
+            if (SwingUtilities.isRightMouseButton(e)) {
+                contextMenu.show(itemsList, e.getX(), e.getY());
+            
+            // Ação para o clique esquerdo (marcar/desmarcar)
+            } else if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e)) {
+                toggleSelectedItem();
             }
         }
     });
 
+   
+    itemsList.addMouseMotionListener(new MouseMotionAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            int index = itemsList.locationToIndex(e.getPoint());
+
+            if (index > -1) {
+                // Pega a área retangular exata da célula (linha) do item
+                Rectangle cellBounds = itemsList.getCellBounds(index, index);
+                
+                // Calcula a posição X do mouse RELATIVA ao início da célula
+                int relativeX = e.getPoint().x - cellBounds.x;
+
+                // Define uma área clicável para o checkbox (ex: os primeiros 30 pixels)
+           
+                final int CHECKBOX_CLICK_AREA = 30; 
+
+            
+                if (relativeX >= 5 && relativeX <= CHECKBOX_CLICK_AREA) {
+                    itemsList.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                } else {
+                 
+                    itemsList.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                }
+            } else {
+               
+                itemsList.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            }
+        }
+    });
+
+
     newItemField.addActionListener(e -> addNewItem());
+
+
 }
 
     private void styleField(JTextField field) {
