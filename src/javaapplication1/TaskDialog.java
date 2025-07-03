@@ -52,7 +52,7 @@ public class TaskDialog extends JDialog {
         priorityLabel.setForeground(textColor);
         priorityCombo = new JComboBox<>(Task.Priority.values());
         priorityCombo.setSelectedItem(initialPriority != null ? initialPriority : Task.Priority.MEDIA);
-        styleComboBox(priorityCombo, fieldColor, textColor);
+        styleComboBox(priorityCombo, fieldColor, buttonColor);
         
         // Data de vencimento
         JLabel dateLabel = new JLabel("Data de Vencimento:");
