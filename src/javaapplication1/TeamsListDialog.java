@@ -209,9 +209,9 @@ public class TeamsListDialog extends JDialog {
                 buttonsPanel.setBackground(panel.getBackground());
                 
                 // Botão Editar
-                JLabel editButton = new JLabel("✎ Editar");
+                JLabel editButton = new JLabel("Editar");
                 editButton.setForeground(buttonColor);
-                editButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                editButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 editButton.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
                 editButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 editButton.addMouseListener(new MouseAdapter() {
@@ -221,7 +221,7 @@ public class TeamsListDialog extends JDialog {
                 });
                 
                 // Botão Excluir
-                JLabel deleteButton = new JLabel("🗑️");
+                JLabel deleteButton = new JLabel("Excluir️");
                 deleteButton.setForeground(errorColor);
                 deleteButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 deleteButton.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
